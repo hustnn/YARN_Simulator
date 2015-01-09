@@ -10,8 +10,11 @@ class FSSchedulerNode(object):
     '''
 
 
-    def __init__(self):
+    def __init__(self, nodeID, resourceCapacity):
         '''
         Constructor
         '''
-        
+        self._nodeID = nodeID
+        self._resourceCapacity = resourceCapacity
+        self._availableResource = resourceCapacity
+        self._
