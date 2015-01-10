@@ -29,9 +29,7 @@ class Task(object):
     def updateStatus(self, status):
         self._status = status
         
-        
-    def getRunnable(self):
-        return self._Status == SchedulableStatus.RUNNING
+    
         
     
         

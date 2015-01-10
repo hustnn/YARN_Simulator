@@ -1,5 +1,5 @@
 '''
-Created on Jan 9, 2015
+Created on Jan 10, 2015
 
 @author: niuzhaojie
 '''
@@ -8,21 +8,29 @@ from FSSchedulerNode import FSSchedulerNode
 from Resource import Resource
 import Configuration
 
-class HDFS(object):
+class Cluster(object):
     '''
     classdocs
     '''
-
-
+            
     def __init__(self, numOfNodes):
         '''
         Constructor
         '''
         self._nodeList = []
+        self._fileList = []
         for i in range(numOfNodes):
             self._nodeList.append(FSSchedulerNode(i, Resource(Configuration.NODE_MEMORY, 
                                                               Configuration.NODE_CPU,
                                                               Configuration.NODE_DISK_BANDWIDTH,
                                                               Configuration.NODE_NETWORK_BANDWIDTH)))
-        
-        
+            
+    
+    def uploadFile(self, file):
+        self._fileList.append(file)
+        # assign blocks to cluster in round-robin way
+        i = 0
+        for block in file._blockList:
+            self._nodeList[i].uploadFileBlock(block)
+            block.assignToNode(self._nodeList[i])
+            i = (i + 1) % len(self._nodeList)

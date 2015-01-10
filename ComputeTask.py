@@ -17,4 +17,9 @@ class ComputeTask(Task):
         '''
         super().__init__(taskID, priority, resourceRequest)
         self._execTime = execTime
+        self._workload = execTime
+        
+        
+    def schedule(self, t):
+        self._workload -= t
         

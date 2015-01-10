@@ -4,7 +4,9 @@ Created on Jan 8, 2015
 @author: niuzhaojie
 '''
 
-class FSQueue(object):
+from Schedulable import Schedulable
+
+class FSQueue(Schedulable):
     '''
     classdocs
     '''

@@ -6,7 +6,8 @@ Created on Jan 9, 2015
 
 class SchedulableStatus:
     WAITING = 1
-    RUNNING = 2
+    RUNNABLE = 2
     PENDING = 3
-    FINISHING = 4
+    RUNNING = 4
+    FINISHING = 5
         

@@ -5,6 +5,7 @@ Created on Jan 9, 2015
 '''
 import Configuration
 from FileBlock import FileBlock
+from BlockType import BlockType
 
 class File(object):
     '''
@@ -22,4 +23,4 @@ class File(object):
         self._blockList = []
         blockNum = self._size / Configuration.BLOCK_SIZE
         for i in range(blockNum):
-            self._blockList.append(FileBlock(i, Configuration.BLOCK_SIZE))
+            self._blockList.append(FileBlock(fileName + str(i), Configuration.BLOCK_SIZE, BlockType.PERMANENT))
