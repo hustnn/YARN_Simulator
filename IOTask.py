@@ -17,7 +17,7 @@ class IOTask(Task):
         '''
         Constructor
         '''
-        self.__init__(taskID, priority, resourceRequest)
+        super(IOTask, self).__init__(taskID, priority, resourceRequest)
         self._block = block
         self._remoteNode = None
         self._localNode = None

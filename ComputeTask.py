@@ -15,7 +15,7 @@ class ComputeTask(Task):
         '''
         Constructor
         '''
-        super().__init__(taskID, priority, resourceRequest)
+        super(ComputeTask, self).__init__(taskID, priority, resourceRequest)
         self._execTime = execTime
         self._workload = execTime
         
