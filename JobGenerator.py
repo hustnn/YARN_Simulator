@@ -36,7 +36,7 @@ class JobGenerator(object):
     
     
     @staticmethod
-    def genMapReduceJob(jobID, inputFile, mapResRequest, numOfReduce, reduceResRequest):
+    def genMapReduceJob(jobID, inputFile, mapResRequest, numOfReduce, resource):
         mapTaskList = []
         reduceTaskList = []
         mapIndex = 0
@@ -45,7 +45,7 @@ class JobGenerator(object):
             mapIndex += 1
         
         for i in range(numOfReduce):
-            reduceTask = IOTask(jobID + "-red-" + str(i), Priority.HIGH, reduceResRequest, 
+            reduceTask = IOTask(jobID + "-red-" + str(i), Priority.HIGH, resource, 
                                 FileBlock(jobID + "tmp" + str(i), inputFile._size / float(numOfReduce), BlockType.INTERMEDIATE))
             for mapTask in mapTaskList:
                 mapTask.addChild(reduceTask)

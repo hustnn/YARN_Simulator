@@ -19,3 +19,34 @@ class Resource(object):
         self._disk = disk
         self._network = network
         
+    
+    def setMemory(self, memory):
+        self._memory = memory
+        
+        
+    def setCPU(self, cpu):
+        self._cpu = cpu
+        
+        
+    def setDisk(self, disk):
+        self._disk = disk
+        
+        
+    def setNetwork(self, network):
+        self._network = network
+        
+        
+    def getMemory(self):
+        return self._memory
+    
+    
+    def getCPU(self):
+        return self._cpu
+    
+    
+    def getDisk(self):
+        return self._disk
+    
+    
+    def getNetwork(self):
+        return self._network

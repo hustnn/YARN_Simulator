@@ -11,11 +11,11 @@ class ComputeTask(Task):
     '''
 
 
-    def __init__(self, taskID, priority, resourceRequest, execTime):
+    def __init__(self, taskID, priority, resource, execTime):
         '''
         Constructor
         '''
-        super(ComputeTask, self).__init__(taskID, priority, resourceRequest)
+        super(ComputeTask, self).__init__(taskID, priority, resource)
         self._execTime = execTime
         self._workload = execTime
         

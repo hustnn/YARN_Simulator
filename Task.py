@@ -9,13 +9,13 @@ class Task(object):
     '''
     classdocs
     '''
-    def __init__(self, taskID, priority, resourceRequest):
+    def __init__(self, taskID, priority, resource):
         '''
         Constructor
         '''
         self._taskID = taskID
         self._priority = priority
-        self._resourceRequest = resourceRequest
+        self._resource = resource
         self._status = SchedulableStatus.WAITING
         self._childs = []
         self._parents = []
