@@ -17,3 +17,7 @@ class SchedulingPolicy(object):
         '''
         Constructor
         '''
+        
+    @abc.abstractmethod
+    def computeShares(self, schedulables, totalResource):
+        return
