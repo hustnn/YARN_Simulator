@@ -21,3 +21,8 @@ class SchedulingPolicy(object):
     @abc.abstractmethod
     def computeShares(self, schedulables, totalResource):
         return
+    
+    
+    @abc.abstractmethod
+    def getComparator(self):
+        return
