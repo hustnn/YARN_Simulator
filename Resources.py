@@ -10,6 +10,8 @@ class Resources(object):
     '''
     classdocs
     '''
+    NONE = Resource(0, 0, 0, 0)
+    
     @staticmethod
     def createResource(memory, cpu, disk, network):
         return Resource(memory, cpu, disk, network)
@@ -36,4 +38,14 @@ class Resources(object):
     @staticmethod
     def fitsIn(smaller, bigger):
         return smaller.getMemory() <= bigger.getMemory() and smaller.getCPU() <= bigger.getCPU()
+    
+    
+    @classmethod
+    def none(cls):
+        return cls.NONE 
+    
+    
+    @staticmethod
+    def equals(lhs, rhs):
+        return lhs == rhs
         

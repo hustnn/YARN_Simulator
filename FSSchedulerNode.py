@@ -29,3 +29,8 @@ class FSSchedulerNode(object):
     def uploadFileBlock(self, block):
         self._blockList.append(block)
         
+    
+    def gerReservedContainer(self):
+        return None
+
+        

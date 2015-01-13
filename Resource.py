@@ -19,6 +19,10 @@ class Resource(object):
         self._disk = disk
         self._network = network
         
+        
+    def __eq__(self, obj):
+        return self._memory == obj.getMemory() and self._cpu == obj.getCPU() and self._disk == obj.getDisk() and self._network == obj.getNetwork()
+        
     
     def setMemory(self, memory):
         self._memory = memory
@@ -50,3 +54,4 @@ class Resource(object):
     
     def getNetwork(self):
         return self._network
+    

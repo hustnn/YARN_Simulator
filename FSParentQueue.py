@@ -47,6 +47,23 @@ class FSParentQueue(FSQueue):
         for childQueue in self._childQueues:
             childQueue.updateDemand()
             toAdd = childQueue.getDemand()
-            Resources.addTo(self._demand, toAdd)
-            
+            Resources.addTo(self._demand, toAdd)    
+        
     
+    def assignContainer(self, node):
+        assigned = Resources.none()
+        
+        if node.gerReservedContainer != None:
+            return assigned
+        
+        self._childQueues.sort(self._policy.getComparator())
+        for child in self._childQueues:
+            assigned = child.assignContainer(node)
+            if not Resources.equals(assigned, Resources.none()):
+                break
+            
+        return assigned
+        
+        
+    def getChildQueues(self):
+        return self._childQueues

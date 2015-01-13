@@ -67,11 +67,14 @@ class AppSchedulable(Schedulable):
     
     def assignContainer(self, node, reserved):
         if reserved:
-            return
-        else:
-            return
+            container = node.getReservedContainer()
+            priority = container.getTask().getPriority()
+            if len(self._app.getResourceRequests(priority)) == 0:
+                # unreserve the previous reserved container
+                return Resources.none()
         
         prioritiesToTry = []
+        
         
         for priority in prioritiesToTry:
             resourceRequests = self._app.getResourceRequests(priority)
@@ -80,5 +83,5 @@ class AppSchedulable(Schedulable):
             
     
     def assignContainerOnNode(self, node):
-        pass 
+        return self.assignContainer(node, False) 
             
