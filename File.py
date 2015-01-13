@@ -24,3 +24,15 @@ class File(object):
         blockNum = self._size / Configuration.BLOCK_SIZE
         for i in range(blockNum):
             self._blockList.append(FileBlock(fileName + str(i), Configuration.BLOCK_SIZE, BlockType.PERMANENT))
+            
+    
+    def getFileName(self):
+        return self._fileName
+    
+    
+    def getFileSize(self):
+        return self._size
+    
+    
+    def getBlockList(self):
+        return self._blockList

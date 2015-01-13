@@ -23,6 +23,10 @@ class IOTask(Task):
         self._scheduledNode = None
         
         
+    def nodeAllocate(self, node):
+        self._scheduledNode = node
+        
+        
     def setLocalDiskBandwidth(self, disk):
         self._localDiskBandwidth = disk
         

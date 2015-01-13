@@ -30,7 +30,7 @@ class Cluster(object):
         self._fileList.append(file)
         # assign blocks to cluster in round-robin way
         i = 0
-        for block in file._blockList:
+        for block in file.getBlockList():
             self._nodeList[i].uploadFileBlock(block)
             block.assignToNode(self._nodeList[i])
             i = (i + 1) % len(self._nodeList)

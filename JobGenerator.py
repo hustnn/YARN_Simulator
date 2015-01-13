@@ -28,7 +28,7 @@ class JobGenerator(object):
     def genMapOnlyJob(jobID, inputFile, resource):
         job = Job(jobID)
         blockIndex = 0
-        for block in inputFile._blockList:
+        for block in inputFile.getBlockList():
             job.addTask(IOTask(jobID + "-map-" + str(blockIndex), Priority.NORMAL, resource, block))
             blockIndex += 1
         
@@ -40,13 +40,13 @@ class JobGenerator(object):
         mapTaskList = []
         reduceTaskList = []
         mapIndex = 0
-        for block in inputFile._blockList:
+        for block in inputFile.getBlockList():
             mapTaskList.append(IOTask(jobID + "-map-" + str(mapIndex), Priority.NORMAL, mapResRequest, block))
             mapIndex += 1
         
         for i in range(numOfReduce):
             reduceTask = IOTask(jobID + "-red-" + str(i), Priority.HIGH, resource, 
-                                FileBlock(jobID + "tmp" + str(i), inputFile._size / float(numOfReduce), BlockType.INTERMEDIATE))
+                                FileBlock(jobID + "tmp" + str(i), inputFile.getFileSize() / float(numOfReduce), BlockType.INTERMEDIATE))
             for mapTask in mapTaskList:
                 mapTask.addChild(reduceTask)
             reduceTaskList.append(reduceTask)

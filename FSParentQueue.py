@@ -12,11 +12,11 @@ class FSParentQueue(FSQueue):
     classdocs
     '''
 
-    def __init__(self, name, parent):
+    def __init__(self, name, parent, scheduler):
         '''
         Constructor
         '''
-        super(FSParentQueue, self).__init__(name, parent)
+        super(FSParentQueue, self).__init__(name, parent, scheduler)
         self._childQueues = []
         self._demand = Resources.createResource(0, 0, 0, 0)
         

@@ -12,9 +12,10 @@ class FSQueue(Schedulable):
     __metaclass__ = abc.ABCMeta
     
     
-    def __init__(self, name, parent):
+    def __init__(self, name, parent, scheduler):
         self._name = name
         self._parent = parent
+        self._scheduler = scheduler
         self._policy = None
         
         

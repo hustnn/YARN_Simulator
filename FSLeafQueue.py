@@ -13,11 +13,11 @@ class FSLeafQueue(FSQueue):
     '''
 
 
-    def __init__(self, name, parent):
+    def __init__(self, name, parent, scheduler):
         '''
         Constructor
         '''
-        super(FSLeafQueue, self).__init__(name, parent)
+        super(FSLeafQueue, self).__init__(name, parent, scheduler)
         self._appScheds = []
         self._demand = Resources.createResource(0, 0, 0, 0)
         

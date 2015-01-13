@@ -22,6 +22,10 @@ class FSSchedulerNode(object):
         self._blockList = []
         
         
+    def getAvailableResource(self):
+        return self._availableResource
+        
+        
     def uploadFileBlock(self, block):
         self._blockList.append(block)
         

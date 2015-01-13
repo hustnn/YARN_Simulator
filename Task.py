@@ -29,6 +29,14 @@ class Task(object):
     def updateStatus(self, status):
         self._status = status
         
+        
+    def getResource(self):
+        return self._resource
+    
+    
+    def getPriority(self):
+        return self._priority
+        
     
         
     

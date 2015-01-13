@@ -22,4 +22,18 @@ class Resources(object):
         lhs.setDisk(lhs.getDisk() + rhs.getDisk())
         lhs.setNetwork(lhs.getNetwork() + rhs.getNetwork())
         return lhs
+    
+    
+    @staticmethod
+    def subtractFrom(lhs, rhs):
+        lhs.setMemory(lhs.getMemory() - rhs.getMemory())
+        lhs.setCPU(lhs.getCPU() - rhs.getCPU())
+        lhs.setDisk(lhs.getDisk() - rhs.getDisk())
+        lhs.setNetwork(lhs.getNetwork() - rhs.getNetwork())
+        return lhs
+    
+    
+    @staticmethod
+    def fitsIn(smaller, bigger):
+        return smaller.getMemory() <= bigger.getMemory() and smaller.getCPU() <= bigger.getCPU()
         
