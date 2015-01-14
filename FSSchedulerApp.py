@@ -64,7 +64,7 @@ class FSSchedulerApp(object):
         return str(self._applicationID + "-" + str(self._containerCount))
     
     
-    def allocate(self, node, priority, task, container):
+    def allocate(self, node, priority, container):
         self._liveContainers.append(container)
         self._allAllocatedContainers.append(container)
         
@@ -73,7 +73,6 @@ class FSSchedulerApp(object):
         self._requests[priority].remove(container.getTask())
         
         Resources.addTo(self._currentConsumption, container.getTask().getResource())
-        return container
     
     
     def containerCompleted(self, container):

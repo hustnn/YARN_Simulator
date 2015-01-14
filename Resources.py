@@ -40,6 +40,31 @@ class Resources(object):
         return smaller.getMemory() <= bigger.getMemory() and smaller.getCPU() <= bigger.getCPU()
     
     
+    @staticmethod
+    def allFitIn(smaller, bigger):
+        return smaller.getMemory() <= bigger.getMemory() and \
+            smaller.getCPU() <= bigger.getCPU() and \
+            smaller.getDisk() <= bigger.getDisk() and \
+            smaller.getNetwork() <= bigger.getNetwork()
+            
+            
+    @staticmethod
+    def localFitIn(request, local):
+        return request.getMemory() <= local.getMemory() and \
+            request.getCPU() <= local.getCPU() and \
+            request.getDisk() <= local.getDisk()
+            
+            
+    @staticmethod
+    def remoteFitIn(request, local, remote):
+        return request.getMemory() <= local.getMemory() and \
+            request.getCPU() <= local.getCPU() and \
+            request.getDisk() <= local.getDisk() and \
+            request.getNetwork() <= local.getNetwork() and \
+            request.getDisk() <= remote.getDisk() and \
+            request.getNetwork() <= remote.getNetwork()
+    
+    
     @classmethod
     def none(cls):
         return cls.NONE 

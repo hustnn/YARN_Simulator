@@ -19,6 +19,12 @@ class Task(object):
         self._status = SchedulableStatus.WAITING
         self._childs = []
         self._parents = []
+        self._expectedNode = None
+        self._scheduledNode = None
+        
+        
+    def nodeAllocate(self, node):
+        self._scheduledNode = node
         
         
     def addChild(self, child):
@@ -38,7 +44,10 @@ class Task(object):
         return self._priority
         
     
-        
+    def getExpectedNode(self):
+        return self._expectedNode
+    
+    
     
         
     

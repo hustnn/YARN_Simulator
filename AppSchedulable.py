@@ -59,11 +59,51 @@ class AppSchedulable(Schedulable):
         return RMContainerInfo(containerID, applicationID, node, task)
     
     
-    def assignContainerToTask(self, node, priority, task, reserved):
-        capacity = task.getResource()
-        available = node.getAvailableResource()
-        container = self.createContainer(node, task)
+    def hasContainerForNode(self, priority, node):
+        requests = self._app.getResourceRequests(priority)
+        if len(requests) == 0:
+            return False
+        
+        for task in requests:
+            if Resources.allFitIn(task.getResource(), node.getCapacity()):
+                return True
+            
+        return False
     
+    
+    def taskFitsInNode(self, task, node):
+        if not self._scheduler.consideringIO():
+            return Resources.fitsIn(task.getResource(), node.getAvailableResource())
+        else:
+            if task.getExpectedNode() == None:
+                return Resources.allFitIn(task.getResource(), node.getAvailableResource())
+            else:
+                if task.getExpectedNode() == node:
+                    return Resources.localFitIn(task.getResource(), node.getAvailableResource())
+                else:
+                    return Resources.remoteFitIn(task.getResource(), node.getAvailableResource(), task.getExpectedNode().getAvailableResource())
+    
+    
+    
+    def assignContainerToTask(self, node, priority, task, reserved):
+        container = None
+        if reserved:
+            container = node.getReservedContainer()
+        else:
+            container = self.createContainer(node, task,)
+            
+        if self.taskFitsInNode(task, node):
+            self._app.allocate(node, priority, container)
+            
+            if reserved:
+                # unserve
+                print("unserve")
+            
+            # inform the node
+            return task.getResource()
+        else:
+            return None
+            
     
     def assignContainer(self, node, reserved):
         if reserved:
@@ -74,13 +114,33 @@ class AppSchedulable(Schedulable):
                 return Resources.none()
         
         prioritiesToTry = []
-        
+        if reserved:
+            prioritiesToTry.append(node.getReservedContainer().getTask().getPriority())
+        else:
+            prioritiesToTry = self._app.getPriorities()
         
         for priority in prioritiesToTry:
-            resourceRequests = self._app.getResourceRequests(priority)
-            #find the best fit request
-            bestRequest = resourceRequests[0]
+            if not self.hasContainerForNode(priority, node):
+                continue
             
+            tasks = self._app.getResourceRequests(priority)
+            #first, assign container to local request
+            localRequests = [task for task in tasks if task.getExpectedNode() == node]
+            if len(localRequests) > 0:
+                return self.assignContainerToTask(node, priority, localRequests[0], reserved)
+            
+            #second, assign contaienr to any request
+            anyRequests = [task for task in tasks if task.getExpectedNode() == None]
+            if len(anyRequests) > 0:
+                return self.assignContainerToTask(node, priority, anyRequests[0], reserved)
+            
+            #Lastly, assign container to other request
+            otherRequests = [task for task in tasks if task not in localRequests and task not in anyRequests]
+            if len(otherRequests) > 0:
+                return self.assignContainerToTask(node, priority, otherRequests[0], reserved)
+            
+        return Resources.none()
+    
     
     def assignContainerOnNode(self, node):
         return self.assignContainer(node, False) 

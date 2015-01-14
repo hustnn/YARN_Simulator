@@ -4,6 +4,8 @@ Created on Jan 8, 2015
 @author: niuzhaojie
 '''
 
+from Resources import Resources
+
 class FSSchedulerNode(object):
     '''
     classdocs
@@ -17,20 +19,94 @@ class FSSchedulerNode(object):
         self._nodeID = nodeID
         self._resourceCapacity = resourceCapacity
         self._availableResource = resourceCapacity
+        self._usedResource = Resources.createResource(0, 0, 0, 0)
         self._averageDiskBandwidth = resourceCapacity._disk
         self._averageNetworkBandwidth = resourceCapacity._network
         self._blockList = []
+        self._numContainers = 0
+        self._reservedContainer = None
+        self._reservedAppSchedulable = None
+        self._launchedContainers = []
         
         
     def getAvailableResource(self):
         return self._availableResource
+    
+    
+    def getCapacity(self):
+        return self._resourceCapacity
+    
+    
+    def getUsedResource(self):
+        return self._usedResource
         
         
     def uploadFileBlock(self, block):
         self._blockList.append(block)
         
     
-    def gerReservedContainer(self):
-        return None
+    def getReservedContainer(self):
+        return self._reservedContainer
+    
+    
+    def getReservedAppSchedulable(self):
+        return self._reservedAppSchedulable
+    
+    
+    def getRunningContainers(self):
+        return self._launchedContainers
+    
+    
+    def deductAvailableResource(self, container):
+        resource = container.getTask().getResource()
+        if container.getTask().getExpectedNode() == None:
+            Resources.subtractFrom(self._availableResource, resource)
+            Resources.addTo(self._usedResource, resource)
+        else:
+            if container.getTask().getExpectedNode() == self:
+                localResource = Resources.createResource(resource.getMemory(), resource.getCPU(), resource.getDisk(), 0)
+                Resources.subtractFrom(self._availableResource, localResource)
+                Resources.addTo(self._usedResource, localResource)
+            else:
+                localResource = resource
+                Resources.subtractFrom(self._availableResource, localResource)
+                Resources.addTo(self._usedResource, localResource)
+                remoteResource = Resources.createResource(0, 0, resource.getDisk(), resource.getNetwork())
+                remoteNode = container.getTask().getExpectedNode()
+                Resources.subtractFrom(remoteNode.getAvailableResource(), remoteResource)
+                Resources.addTo(remoteNode.getUsedResource(), remoteResource)
+                
+                
+    def addAvailableResource(self, container):
+        resource = container.getTask().getResource()
+        if container.getTask().getExpectedNode() == None:
+            Resources.addTo(self._availableResource, resource)
+            Resources.subtractFrom(self._usedResource, resource)
+        else:
+            if container.getTask().getExpectedNode() == self:
+                localResource = Resources.createResource(resource.getMemory(), resource.getCPU(), resource.getDisk(), 0)
+                Resources.addTo(self._availableResource, localResource)
+                Resources.subtractFrom(self._usedResource, localResource)
+            else:
+                localResource = resource
+                Resources.addTo(self._availableResource, localResource)
+                Resources.subtractFrom(self._usedResource, localResource)
+                remoteResource = Resources.createResource(0, 0, resource.getDisk(), resource.getNetwork())
+                remoteNode = container.getTask().getExpectedNode()
+                Resources.addTo(remoteNode.getAvailableResource(), remoteResource)
+                Resources.subtractFrom(remoteNode.getUsedResource(), remoteResource)
+    
+    
+    def allocateContainer(self, container):
+        self.deductAvailableResource(container)
+        self._numContainers += 1
+        self._launchedContainers.append(container)
 
+    
+    def releaseContainer(self, container):
+        self._launchedContainers.remove(container)
+        self._numContainers -= 1
+        self.addAvailableResource(container)
+        
+        
         

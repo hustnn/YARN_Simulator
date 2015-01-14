@@ -14,4 +14,8 @@ class YARNScheduler(object):
         '''
         Constructor
         '''
+        self._consideringIO = True
         
+        
+    def consideringIO(self):
+        return self._consideringIO
