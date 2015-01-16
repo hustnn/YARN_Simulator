@@ -73,8 +73,9 @@ class FSLeafQueue(FSQueue):
         
         self._appScheds.sort(self._policy.getComparator())
         for sched in self._appScheds:
-            assigned = sched.assignContainer(node)
-            if not Resources.equals(assigned, Resources.none()):
-                break
+            if sched.getRunnable():
+                assigned = sched.assignContainer(node)
+                if not Resources.equals(assigned, Resources.none()):
+                    break
             
         return assigned

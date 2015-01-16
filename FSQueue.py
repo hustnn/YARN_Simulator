@@ -5,6 +5,7 @@ Created on Jan 8, 2015
 '''
 
 import abc
+import sys
 
 from Schedulable import Schedulable
 
@@ -17,6 +18,11 @@ class FSQueue(Schedulable):
         self._parent = parent
         self._scheduler = scheduler
         self._policy = None
+        self._maxApps = sys.maxint
+        
+        
+    def setMaxApps(self, num):
+        self._maxApps = num
         
         
     def getName(self):
@@ -26,10 +32,9 @@ class FSQueue(Schedulable):
     def getPolicy(self):
         return self._policy
     
-    
-    @abc.abstractmethod
+
     def setPolicy(self, policy):
-        return
+        self._policy = policy
     
     
     def getStartTime(self):

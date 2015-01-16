@@ -29,3 +29,11 @@ class Job(object):
         
     def addTask(self, task):
         self._taskList.append(task)
+        
+        
+    def getJobID(self):
+        return self._jobID
+    
+    
+    def getTaskList(self):
+        return self._taskList

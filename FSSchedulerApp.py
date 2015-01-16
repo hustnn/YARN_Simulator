@@ -15,12 +15,14 @@ class FSSchedulerApp(object):
     '''
 
 
-    def __init__(self, applicationID, queue):
+    def __init__(self, job, queue):
         '''
         Constructor
         '''
         self._requests = {}
-        self._applicationID = applicationID
+        #self._applicationID = applicationID
+        self._job = job
+        self.updateResourceRequests(self._job.getTaskList())
         self._queue = queue
         self._containerCount = 0
         self._liveContainers = []
@@ -61,7 +63,7 @@ class FSSchedulerApp(object):
     
     def getNewContainerID(self):
         self._containerCount += 1
-        return str(self._applicationID + "-" + str(self._containerCount))
+        return str(self._job.getJobID() + "-" + str(self._containerCount))
     
     
     def allocate(self, node, priority, container):

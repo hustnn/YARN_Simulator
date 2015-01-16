@@ -25,10 +25,19 @@ class AppSchedulable(Schedulable):
         self._queue = queue
         self._startTime = int(time.time())
         self._demand = Resources.createResource(0, 0, 0, 0)
+        self._runnable = False
         
         
     def getApp(self):
         return self._app
+    
+    
+    def getRunnable(self):
+        return self._runnable
+    
+    
+    def setRunnable(self, runnable):
+        self._runnable = runnable
     
     
     def updateDemand(self):
@@ -111,6 +120,9 @@ class AppSchedulable(Schedulable):
             priority = container.getTask().getPriority()
             if len(self._app.getResourceRequests(priority)) == 0:
                 # unreserve the previous reserved container
+                return Resources.none()
+        else:
+            if not self.getRunnable():
                 return Resources.none()
         
         prioritiesToTry = []
