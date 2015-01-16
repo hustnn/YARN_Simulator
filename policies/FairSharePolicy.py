@@ -8,9 +8,10 @@ import sys
 
 sys.path.append('../')
 
-
 from SchedulingPolicy import SchedulingPolicy
 from Utility import Utility
+from ComputeFairShares import ComputeFairShares
+from ResourceType import ResourceType
 
 class FairSharePolicy(SchedulingPolicy):
     '''
@@ -18,9 +19,8 @@ class FairSharePolicy(SchedulingPolicy):
     '''
     NAME = "fair"
 
-    
-    @staticmethod
-    def compare(s1, s2):
+
+    def compare(self, s1, s2):
         useToWeightRatio1 = s1.getResourceUsage().getMemory() / s1.getWeight()
         useToWeightRatio2 = s2.getResourceUsage().getMemory() / s2.getWeight()
         
@@ -42,3 +42,11 @@ class FairSharePolicy(SchedulingPolicy):
                 res = Utility.compareTo(s1.getName(), s2.getName())
                 
         return res
+        
+    
+    def getComparator(self):
+        return self.compare
+    
+    
+    def computeShares(self, schedulables, totalResources):
+        ComputeFairShares.computeShares(schedulables, totalResources, ResourceType.MEMORY)

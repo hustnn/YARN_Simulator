@@ -31,7 +31,7 @@ class FSLeafQueue(FSQueue):
     def removeApp(self, app):
         appSchedulableToRemove = None
         for appSchedulable in self._appScheds:
-            if appSchedulable.getApp() is app:
+            if appSchedulable.getApp() == app:
                 appSchedulableToRemove = appSchedulable
         if appSchedulableToRemove != None:
             self._appScheds.remove(appSchedulableToRemove)

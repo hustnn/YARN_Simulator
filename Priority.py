@@ -8,7 +8,7 @@ class Priority(object):
     '''
     classdocs
     '''
-    LOW = 1
-    NORMAL = 2
-    HIGH = 3
+    LOW = 0
+    NORMAL = 1
+    HIGH = 2
         

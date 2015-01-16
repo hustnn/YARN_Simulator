@@ -5,7 +5,7 @@ Created on Jan 9, 2015
 '''
 
 class LocalityLevel:
-    LOCAL = 1
-    RACK = 2
-    ANY = 3
+    LOCAL = 0
+    RACK = 1
+    ANY = 2
         

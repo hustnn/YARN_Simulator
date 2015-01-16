@@ -24,3 +24,5 @@ class SchedulingPolicy(object):
         return
         
     
+    def initialize(self, clusterCapacity):
+        self._clusterCapacity = clusterCapacity

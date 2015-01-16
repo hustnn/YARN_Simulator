@@ -10,6 +10,21 @@ import Configuration
 
 from policies.FairSharePolicy import FairSharePolicy
 
+
+class A(object):
+    def f(self, s1 ,s2):
+        if s1 < s2:
+            return -1
+        else:
+            return 1
+    
+    
+    def a(self):
+        return self.f
+
 if __name__ == '__main__':
-    print(FairSharePolicy())
+    c = A()
+    a = [1, 3, 2]
+    a.sort(c.a())
+    print(a)
     

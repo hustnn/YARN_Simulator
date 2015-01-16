@@ -4,7 +4,6 @@ Created on Jan 9, 2015
 @author: niuzhaojie
 '''
 from Task import Task
-from BlockType import BlockType
 from SchedulableStatus import SchedulableStatus
 
 class IOTask(Task):

@@ -5,5 +5,5 @@ Created on Jan 9, 2015
 '''
 
 class BlockType(object):
-    PERMANENT = 1
-    INTERMEDIATE = 2
+    PERMANENT = 0
+    INTERMEDIATE = 1

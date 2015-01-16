@@ -8,7 +8,7 @@ class ResourceType:
     '''
     classdocs
     '''
-    MEMORY = 1
-    CPU = 2
-    DISK = 3
-    NETWORK = 4
+    MEMORY = 0
+    CPU = 1
+    DISK = 2
+    NETWORK = 3
