@@ -15,15 +15,15 @@ class FSSchedulerApp(object):
     '''
 
 
-    def __init__(self, job, queue):
+    def __init__(self, job):
         '''
         Constructor
         '''
         self._requests = {}
         #self._applicationID = applicationID
         self._job = job
-        self.updateResourceRequests(self._job.getTaskList())
-        self._queue = queue
+        self.updateResourceRequests(job.getTaskList())
+        self._queue = None
         self._containerCount = 0
         self._liveContainers = []
         self._allAllocatedContainers = []
@@ -46,9 +46,21 @@ class FSSchedulerApp(object):
         self._appSchedulable = appSchedulable
         
         
+    def getQueue(self):
+        return self._queue
+    
+    
+    def getLiveContainers(self):
+        return self._liveContainers
+        
+        
     def updateResourceRequests(self, taskList):
         for task in taskList:
             self._requests.setdefault(task.getPriority(), []).append(task)
+            
+            
+    def assignToQueue(self, queue):
+        self._queue = queue
             
             
     def getPriorities(self):
@@ -82,4 +94,9 @@ class FSSchedulerApp(object):
         self._liveContainers.remove(container)
         containerResource = container.getTask().getResource()
         Resources.subtractFrom(self._currentConsumption, containerResource)
+        
+        
+    def clearRequests(self):
+        self._requests.clear()
+        
         

@@ -12,12 +12,12 @@ class RMContainerInfo(object):
     '''
 
 
-    def __init__(self, containerID, applicationID, node, task):
+    def __init__(self, containerID, application, node, task):
         '''
         Constructor
         '''
         self._containerID = containerID
-        self._applicationID = applicationID
+        self._application = application
         self._node = node
         self._task = task
         self._startTime = int(time.time())
@@ -26,6 +26,14 @@ class RMContainerInfo(object):
         
     def getTask(self):
         return self._task
+    
+    
+    def getApplication(self):
+        return self._application
+    
+    
+    def getNode(self):
+        return self._node
         
         
     def setFinishTime(self, finishTime):
