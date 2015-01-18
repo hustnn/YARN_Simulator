@@ -8,6 +8,7 @@ from FSParentQueue import FSParentQueue
 from FSLeafQueue import FSLeafQueue
 from policies.PolicyParser import PolicyParser
 from FSSchedulerApp import FSSchedulerApp
+from Resources import Resources
 
 class YARNScheduler(object):
     '''
@@ -72,4 +73,25 @@ class YARNScheduler(object):
         
         queue = self._queues.get(app.getQueue().getName())
         queue.removeApp(app)
+        
+        
+    def nodeUpdate(self, node):
+        # assign new containers
+        # 1. check for reserved applications
+        # 2. schedule if there are no reservations
+        
+        reservedAppSchedulable = node.getReservedAppSchedulable()
+        if reservedAppSchedulable == None:
+            # no reservation, schedule at queue which is farthest below fair share
+            while node.getReservedContainer() == None:
+                assignedContainer = False
+                if node.getAvailableResource() == Resources.none() and len(self._applications) == 0:
+                    break
+                
+                assignedResource = self._rootQueue.assignContainer(node)
+                if assignedResource.getMemory() > Resources.none().getMemory():
+                    assignedContainer = True
+                    
+                if not assignedContainer:
+                    break
         

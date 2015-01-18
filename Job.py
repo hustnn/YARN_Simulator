@@ -11,14 +11,14 @@ class Job(object):
     '''
 
 
-    def __init__(self, jobID):
+    def __init__(self, jobID, submissionTime):
         '''
         Constructor
         '''
         self._jobID = jobID
         self._status = SchedulableStatus.WAITING
         self._taskList = []
-        self._submissionTime = None
+        self._submissionTime = submissionTime
         self._startTime = None
         self._finishTime = None
         

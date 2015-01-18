@@ -18,7 +18,7 @@ class Cluster(object):
         Constructor
         '''
         self._nodeList = []
-        self._fileList = []
+        self._fileList = {}
         for i in range(numOfNodes):
             self._nodeList.append(FSSchedulerNode(i, Resource(Configuration.NODE_MEMORY, 
                                                               Configuration.NODE_CPU,
@@ -27,10 +27,14 @@ class Cluster(object):
             
     
     def uploadFile(self, file):
-        self._fileList.append(file)
+        self._fileList[file.getFileName()] = file
         # assign blocks to cluster in round-robin way
         i = 0
         for block in file.getBlockList():
             self._nodeList[i].uploadFileBlock(block)
             block.assignToNode(self._nodeList[i])
             i = (i + 1) % len(self._nodeList)
+            
+            
+    def getFile(self, filename):
+        return self._fileList.get(filename)

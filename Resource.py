@@ -21,7 +21,7 @@ class Resource(object):
         
         
     def __eq__(self, obj):
-        return self._memory == obj.getMemory() and self._cpu == obj.getCPU() and self._disk == obj.getDisk() and self._network == obj.getNetwork()
+        return self._memory == obj.getMemory() and self._cpu == obj.getCPU()
         
     
     def setMemory(self, memory):
