@@ -21,5 +21,9 @@ class ComputeTask(Task):
         
         
     def schedule(self, t):
-        self._workload -= t
+        if self._workload < t:
+            self._workload = 0
+        else:
+            self._workload -= t
+        
         

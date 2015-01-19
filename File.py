@@ -13,11 +13,10 @@ class File(object):
     '''
 
 
-    def __init__(self, fileID, fileName, size):
+    def __init__(self, fileName, size):
         '''
         Constructor
         '''
-        self._fileID = fileID
         self._fileName = fileName
         self._size = size
         self._blockList = []

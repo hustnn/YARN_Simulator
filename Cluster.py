@@ -38,3 +38,7 @@ class Cluster(object):
             
     def getFile(self, filename):
         return self._fileList.get(filename)
+    
+    
+    def getAllNodes(self):
+        return self._nodeList

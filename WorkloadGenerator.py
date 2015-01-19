@@ -21,6 +21,26 @@ class WorkloadGenerator(object):
         self._queues = {}
         for k, v in queueWorkloadDict.items():
             self._queues[k] = {"traceFile": v, "totalJobs": 0, "submittedJobs": 0, "jobList": []}
+        for queue in self._queues.keys():
+            self.genWorkload(queue)
+            
+            
+    def submitJobs(self, currentTime, scheduler):
+        for k, v in self._queues.items():
+            while(v["submittedJobs"] < v["totalJobs"] and (v["jobList"][v["submittedJobs"]]).getSubmissionTime() <= currentTime):
+                job = v["jobList"][v["submittedJobs"]]
+                v["submittedJobs"] += 1
+                scheduler.submitjob(job, k)
+                
+                
+    def allJobsSubmitted(self):
+        ret = True
+        for info in self._queues.values():
+            if info["submittedJobs"] < info["totalJobs"]:
+                ret = False
+                break
+            
+        return ret
             
             
     def genWorkload(self, queue):
@@ -68,4 +88,6 @@ class WorkloadGenerator(object):
                 
             self._queues[queue]["totalJobs"] += 1
             self._queues[queue]["jobList"].append(job)
+            
+            
         

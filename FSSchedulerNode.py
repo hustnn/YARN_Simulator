@@ -27,6 +27,52 @@ class FSSchedulerNode(object):
         self._reservedContainer = None
         self._reservedAppSchedulable = None
         self._launchedContainers = []
+        self._diskConsumingTasks = []
+        self._networkConsumingTasks = []
+        
+        
+    def addDiskConsumingTask(self, task):
+        self._diskConsumingTasks.append(task)
+        
+        
+    def addNetworkConsumingTask(self, task):
+        self._networkConsumingTasks.append(task)
+        
+        
+    def removeDiskConsumingTask(self, task):
+        self._diskConsumingTasks.remove(task)
+        
+        
+    def removeNetworkConsumingTask(self, task):
+        self._networkConsumingTasks.remove(task)
+        
+        
+    def calDiskBandwidth(self):
+        diskBandwidth = self._resourceCapacity.getDisk()
+        weight = 0
+        for task in self._diskConsumingTasks:
+            weight += task.getResource().getDisk()
+            
+        for task in self._diskConsumingTasks:
+            bandwidth = float(diskBandwidth) * task.getResource().getDisk() / weight
+            if task.getAllocatedNode() == self:
+                task.setLocalDiskBandwidth(bandwidth)
+            else:
+                task.setRemoteDiskBandwidth(bandwidth)
+                
+                
+    def calNetworkBandwidth(self):
+        networkBandwidth = self._resourceCapacity.getNetwork()
+        weight = 0
+        for task in self._networkConsumingTasks:
+            weight += task.getResource().getNetwork()
+            
+        for task in self._networkConsumingTasks:
+            bandwidth = float(networkBandwidth) * task.getResource().getNetwork() / weight
+            if task.getAllocatedNode() == self:
+                task.setLocalNetworkBandwidth(bandwidth)
+            else:
+                task.setRemoteNetworkBandwidth(bandwidth)
         
         
     def getAvailableResource(self):

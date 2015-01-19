@@ -4,27 +4,34 @@ Created on Jan 8, 2015
 @author: niuzhaojie
 '''
 
-from Resource import Resource
-from Test import SClass 
+from Resource import Resource 
+from File import File
+from Cluster import Cluster
+from YARNScheduler import YARNScheduler
+from WorkloadGenerator import WorkloadGenerator
 import Configuration
 
-from policies.FairSharePolicy import FairSharePolicy
 
-
-class A(object):
-    def f(self, s1 ,s2):
-        if s1 < s2:
-            return -1
-        else:
-            return 1
-    
-    
-    def a(self):
-        return self.f
 
 if __name__ == '__main__':
-    c = A()
-    a = [1, 3, 2]
-    a.sort(c.a())
-    print(a)
+    cluster = Cluster(10)
+    fileList = [{"name": "wiki-40G", "size": Configuration.BLOCK_SIZE * 4 * 40}]
+    for f in fileList:
+        file = File(f["name"], f["size"])
+        cluster.uploadFile(file)
+        
+    scheduler = YARNScheduler(cluster)
+    
+    queueWorkloads = {"queue1": "q1-workload"}
+    workloadGen = WorkloadGenerator(Configuration.SIMULATION_PATH, queueWorkloads, cluster)
+    
+    simulationStepCount = 0
+    while True:
+        if workloadGen.allJobsSubmitted() and len(scheduler.getAllApplications()) == 0:
+            break
+        
+        currentTime = simulationStepCount * Configuration.SIMULATION_STEP
+        workloadGen.submitJobs(currentTime, scheduler)
+        scheduler.simulate(Configuration.SIMULATION_STEP)
+        simulationStepCount += 1
     

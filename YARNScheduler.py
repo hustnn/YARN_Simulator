@@ -16,7 +16,7 @@ class YARNScheduler(object):
     '''
 
 
-    def __init__(self):
+    def __init__(self, cluster):
         '''
         Constructor
         '''
@@ -24,7 +24,9 @@ class YARNScheduler(object):
         self._rootQueue = FSParentQueue("root", None, self)
         self._rootQueue.setPolicy(PolicyParser.getInstance("fair"))
         self._queues = {"root": self._rootQueue}
+        self._cluster = cluster
         self._applications = []
+        self._waitingJobList = {}
         
         
     def createQueue(self, queueName, maxApps, policy, isLeaf, parentQueueName):
@@ -51,6 +53,10 @@ class YARNScheduler(object):
         
         application.containerCompleted(container)
         node.releaseContainer(container)
+    
+    
+    def getAllApplications(self):
+        return self._applications
     
     
     def addApplication(self, job, queueName):
@@ -94,4 +100,33 @@ class YARNScheduler(object):
                     
                 if not assignedContainer:
                     break
+        
+        
+    def submitJob(self, job, queueName):
+        self._waitingJobList.setdefault(queueName, []).append(job)
+        
+        
+    def activateWaitingJobs(self):
+        for k, v in self._waitingJobList.items():
+            for job in v:
+                self.addApplication(job, k)
+                
+        self._waitingJobList.clear()
+        
+        
+    def update(self):
+        return
+    
+    
+    def schedule(self, step):
+        return
+        
+        
+    def simulate(self, step):
+        self.activateWaitingJobs()
+        for node in self._cluster.getAllNodes():
+            self.nodeUpdate(node)
+        self.schedule(step)
+        self.update()
+        
         

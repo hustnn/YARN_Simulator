@@ -12,3 +12,9 @@ NODE_NETWORK_BANDWIDTH = 128
 
 # MB
 BLOCK_SIZE = 256
+
+
+# simulation parameter
+SIMULATION_PATH = "/Users/niuzhaojie/GitHub/YARN_Simulator"
+
+SIMULATION_STEP = 1 #sec 

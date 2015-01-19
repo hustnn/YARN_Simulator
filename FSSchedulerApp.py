@@ -6,6 +6,8 @@ Created on Jan 8, 2015
 
 from Priority import Priority
 from Resources import Resources
+from SchedulableStatus import SchedulableStatus
+from IOTask import IOTask
 
 import time
 
@@ -78,7 +80,40 @@ class FSSchedulerApp(object):
         return str(self._job.getJobID() + "-" + str(self._containerCount))
     
     
+    def updateResourceConsumptionOfTask(self, task):
+        if type(task) is IOTask:
+            if task.getExpectedNode() == None:
+                task.getAllocatedNode().addDiskConsumingTask(task)
+                task.getAllocatedNode().addNetworkConsumingTask(task)
+            elif task.getExpectedNode() == task.getAllocatedNode():
+                task.getAllocatedNode().addDiskConsumingTask(task)
+            elif task.getExpectedNode() != task.getAllocatedNode():
+                task.getAllocatedNode().addDiskConsumingTask(task)
+                task.getAllocatedNode().addNetworkConsumingTask(task)
+                task.getExpectedNode().addDiskConsumingTask(task)
+                task.getExpectedNode().addNetworkConsumingTask(task)
+                
+                
+    def clearResourceConsumptionOfTask(self, task):
+        if type(task) is IOTask:
+            if task.getExpectedNode() == None:
+                task.getAllocatedNode().removeDiskConsumingTask(task)
+                task.getAllocatedNode().removeNetworkConsumingTask(task)
+            elif task.getExpectedNode() == task.getAllocatedNode():
+                task.getAllocatedNode().removeDiskConsumingTask(task)
+            elif task.getExpectedNode() != task.getAllocatedNode():
+                task.getAllocatedNode().removeDiskConsumingTask(task)
+                task.getAllocatedNode().removeNetworkConsumingTask(task)
+                task.getExpectedNode().removeDiskConsumingTask(task)
+                task.getExpectedNode().removeNetworkConsumingTask(task)
+    
+    
     def allocate(self, node, priority, container):
+        # task --> running
+        task = container.getTask()
+        task.updateStatus(SchedulableStatus.RUNNING)
+        self.updateResourceConsumptionOfTask(task)
+        
         self._liveContainers.append(container)
         self._allAllocatedContainers.append(container)
         
@@ -90,6 +125,11 @@ class FSSchedulerApp(object):
     
     
     def containerCompleted(self, container):
+        # task --> finished
+        task = container.getTask()
+        task.updateStatus(SchedulableStatus.FINISHING)
+        self.clearResourceConsumptionOfTask(task)
+        
         container.setFinishTime(int(time.time()))
         self._liveContainers.remove(container)
         containerResource = container.getTask().getResource()

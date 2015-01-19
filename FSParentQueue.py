@@ -53,7 +53,7 @@ class FSParentQueue(FSQueue):
     def assignContainer(self, node):
         assigned = Resources.none()
         
-        if node.gerReservedContainer != None:
+        if node.getReservedContainer() != None:
             return assigned
         
         self._childQueues.sort(self._policy.getComparator())

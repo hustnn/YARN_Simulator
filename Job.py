@@ -37,3 +37,7 @@ class Job(object):
     
     def getTaskList(self):
         return self._taskList
+    
+    
+    def getSubmissionTime(self):
+        return self._submissionTime

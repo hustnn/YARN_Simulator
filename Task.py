@@ -5,10 +5,12 @@ Created on Jan 9, 2015
 '''
 from SchedulableStatus import SchedulableStatus
 
+import abc
+
 class Task(object):
-    '''
-    classdocs
-    '''
+    __metaclass__ = abc.ABCMeta
+    
+    
     def __init__(self, taskID, priority, resource):
         '''
         Constructor
@@ -48,6 +50,13 @@ class Task(object):
         return self._expectedNode
     
     
+    def getAllocatedNode(self):
+        return self._scheduledNode
+    
+    
+    @abc.abstractmethod
+    def schedule(self, t):
+        return
     
         
     

@@ -7,6 +7,7 @@ Created on Jan 8, 2015
 from Schedulable import Schedulable
 from Resources import Resources
 from RMContainerInfo import RMContainerInfo
+from IOTask import IOTask
 
 import time
 
@@ -25,19 +26,10 @@ class AppSchedulable(Schedulable):
         self._queue = queue
         self._startTime = int(time.time())
         self._demand = Resources.createResource(0, 0, 0, 0)
-        self._runnable = False
         
         
     def getApp(self):
         return self._app
-    
-    
-    def getRunnable(self):
-        return self._runnable
-    
-    
-    def setRunnable(self, runnable):
-        self._runnable = runnable
     
     
     def updateDemand(self):
@@ -93,13 +85,12 @@ class AppSchedulable(Schedulable):
                     return Resources.remoteFitIn(task.getResource(), node.getAvailableResource(), task.getExpectedNode().getAvailableResource())
     
     
-    
     def assignContainerToTask(self, node, priority, task, reserved):
         container = None
         if reserved:
             container = node.getReservedContainer()
         else:
-            container = self.createContainer(node, task,)
+            container = self.createContainer(node, task)
             
         if self.taskFitsInNode(task, node):
             self._app.allocate(node, priority, container)
@@ -109,20 +100,19 @@ class AppSchedulable(Schedulable):
                 print("unserve")
             
             # inform the node
+            node.allocateContainer(container)
+            
             return task.getResource()
         else:
-            return None
+            return Resources.none()
             
     
-    def assignContainer(self, node, reserved):
+    def assignContainerByPriority(self, node, reserved):
         if reserved:
             container = node.getReservedContainer()
             priority = container.getTask().getPriority()
             if len(self._app.getResourceRequests(priority)) == 0:
                 # unreserve the previous reserved container
-                return Resources.none()
-        else:
-            if not self.getRunnable():
                 return Resources.none()
         
         prioritiesToTry = []
@@ -155,5 +145,5 @@ class AppSchedulable(Schedulable):
     
     
     def assignContainerOnNode(self, node):
-        return self.assignContainer(node, False) 
+        return self.assignContainerByPriority(node, False) 
             
