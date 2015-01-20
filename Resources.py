@@ -18,6 +18,11 @@ class Resources(object):
     
     
     @staticmethod
+    def clone(resource):
+        return Resource(resource.getMemory(), resource.getCPU(), resource.getDisk(), resource.getNetwork())
+    
+    
+    @staticmethod
     def addTo(lhs, rhs):
         lhs.setMemory(lhs.getMemory() + rhs.getMemory())
         lhs.setCPU(lhs.getCPU() + rhs.getCPU())

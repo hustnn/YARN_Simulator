@@ -54,6 +54,7 @@ class IOTask(Task):
                                           self._remoteNetworkBandwidth, 
                                           self._localNetworkBandwidth, 
                                           self._localDiskBandwidth)
+
             if self._workload <= t * speed:
                 self._workload = 0
             else:  

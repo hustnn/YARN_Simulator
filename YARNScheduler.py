@@ -184,6 +184,17 @@ class YARNScheduler(object):
         for node in self._cluster.getAllNodes():
             node.calDiskBandwidth()
             node.calNetworkBandwidth()
+            
+        print("begin")
+        print("node: ")
+        for node in self._cluster.getAllNodes():
+            print(node.getAvailableResource())
+            
+        print("apps: ")
+        for app in self._applications:
+            print(app.getCurrentConsumption())
+            
+        print("end")
         
         self.schedule(step)
         self.updateStatusAfterScheduling()

@@ -18,10 +18,8 @@ class FSSchedulerNode(object):
         '''
         self._nodeID = nodeID
         self._resourceCapacity = resourceCapacity
-        self._availableResource = resourceCapacity
+        self._availableResource = Resources.clone(resourceCapacity)
         self._usedResource = Resources.createResource(0, 0, 0, 0)
-        self._averageDiskBandwidth = resourceCapacity._disk
-        self._averageNetworkBandwidth = resourceCapacity._network
         self._blockList = []
         self._numContainers = 0
         self._reservedContainer = None

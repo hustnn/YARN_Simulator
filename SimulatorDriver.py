@@ -28,10 +28,10 @@ if __name__ == '__main__':
     queueWorkloads = {"queue1": "q1-workload"}
     workloadGen = WorkloadGenerator(Configuration.SIMULATION_PATH, queueWorkloads, cluster)
     
-    for k in queueWorkloads.keys():
+    '''for k in queueWorkloads.keys():
         v = workloadGen.getQueues()[k]
         for job in v["jobList"]:
-            print(job.getSubmissionTime(), len(job.getTaskList()))
+            print(job.getSubmissionTime(), len(job.getTaskList()))'''
         
     
     simulationStepCount = 0
@@ -44,4 +44,6 @@ if __name__ == '__main__':
         workloadGen.submitJobs(currentTime, scheduler)
         scheduler.simulate(Configuration.SIMULATION_STEP, currentTime)
         simulationStepCount += 1
+        
+    print("simulation end")
     

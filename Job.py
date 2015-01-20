@@ -59,6 +59,14 @@ class Job(object):
                 task.updateStatus(SchedulableStatus.PENDING)
                 
                 
+    def getNumofUnFinishedTasks(self):
+        count = 0
+        for task in self._taskList:
+            if task.getStatus() != SchedulableStatus.FINISHING:
+                count += 1
+        return count
+                
+                
     def allTasksFinished(self):
         ret = True
         for task in self._taskList:
