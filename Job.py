@@ -53,16 +53,16 @@ class Job(object):
         
     def activeAllTasks(self):
         for task in self._taskList:
-            if task.getstatus() == SchedulableStatus.WAITING and len(task.getParents()) == 0:
+            if task.getStatus() == SchedulableStatus.WAITING and len(task.getParents()) == 0:
                 task.updateStatus(SchedulableStatus.RUNNABLE)
-            elif task.getstatus() == SchedulableStatus.WAITING and len(task.getParents()) > 0:
+            elif task.getStatus() == SchedulableStatus.WAITING and len(task.getParents()) > 0:
                 task.updateStatus(SchedulableStatus.PENDING)
                 
                 
     def allTasksFinished(self):
         ret = True
         for task in self._taskList:
-            if task.getstatus() != SchedulableStatus.FINISHING:
+            if task.getStatus() != SchedulableStatus.FINISHING:
                 ret = False
                 break
             

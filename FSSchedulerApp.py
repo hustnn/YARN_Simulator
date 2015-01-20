@@ -16,12 +16,12 @@ class FSSchedulerApp(object):
     '''
 
 
-    def __init__(self, job, scheduler):
+    def __init__(self, applicationID, job, scheduler):
         '''
         Constructor
         '''
         self._requests = {}
-        #self._applicationID = applicationID
+        self._applicationID = applicationID
         self._job = job
         self._scheduler = scheduler
         self.updateResourceRequests(job.getTaskList())
@@ -46,7 +46,7 @@ class FSSchedulerApp(object):
     
     def getResourceRequests(self, priority):
         requests = self._requests.get(priority, [])
-        runnableRequests = [request for request in requests if request.getstatus() == SchedulableStatus.RUNNABLE] 
+        runnableRequests = [request for request in requests if request.getStatus() == SchedulableStatus.RUNNABLE] 
         return runnableRequests
     
         
@@ -73,11 +73,7 @@ class FSSchedulerApp(object):
             
     def getPriorities(self):
         # from high to low
-        priorities = []
-        for i in Priority:
-            priorities.append(i)
-            
-        priorities.reverse()
+        priorities = [Priority.HIGH, Priority.NORMAL, Priority.LOW]
         return priorities
     
     
@@ -117,6 +113,7 @@ class FSSchedulerApp(object):
     def allocate(self, node, priority, container):
         # task --> running
         task = container.getTask()
+        task.nodeAllocate(node)
         task.updateStatus(SchedulableStatus.RUNNING)
         self.updateResourceConsumptionOfTask(task)
         

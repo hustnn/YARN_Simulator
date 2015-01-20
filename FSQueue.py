@@ -12,8 +12,9 @@ from Schedulable import Schedulable
 class FSQueue(Schedulable):
     __metaclass__ = abc.ABCMeta
     
-    
+    @abc.abstractmethod
     def __init__(self, name, parent, scheduler):
+        super(FSQueue, self).__init__()
         self._name = name
         self._parent = parent
         self._scheduler = scheduler

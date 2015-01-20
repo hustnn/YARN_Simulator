@@ -19,7 +19,7 @@ class IOTask(Task):
         super(IOTask, self).__init__(taskID, priority, resource)
         self._block = block
         self._expectedNode = self._block._location
-        self._workload = self._block.getSize()
+        self._workload = self._block.getBlockSize()
         
         
     def getWorkload(self):

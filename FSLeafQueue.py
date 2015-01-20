@@ -23,7 +23,7 @@ class FSLeafQueue(FSQueue):
         
         
     def addApp(self, app):
-        appSchedulable = AppSchedulable(app, self)
+        appSchedulable = AppSchedulable(self._scheduler, app, self)
         app.setAppSchedulable(appSchedulable)
         self._appScheds.append(appSchedulable)
         
@@ -39,6 +39,10 @@ class FSLeafQueue(FSQueue):
             
     def getAppSchedulables(self):
         return self._appScheds
+    
+    
+    def getChildQueues(self):
+        return []
             
             
     def recomputeShares(self):
@@ -68,13 +72,13 @@ class FSLeafQueue(FSQueue):
     def assignContainer(self, node):
         assigned = Resources.none()
         
-        if node.gerReservedContainer() != None:
+        if node.getReservedContainer() != None:
             return assigned
         
         self._appScheds.sort(self._policy.getComparator())
         
         for sched in self._appScheds:
-            assigned = sched.assignContainerOnNode(node)
+            assigned = sched.assignContainer(node)
             if not Resources.equals(assigned, Resources.none()):
                 break
             

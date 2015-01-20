@@ -42,9 +42,9 @@ class Schedulable(object):
         return
     
     
-    @abc.abstractmethod
+    '''@abc.abstractmethod
     def getPriority(self):
-        return
+        return'''
     
     
     @abc.abstractmethod

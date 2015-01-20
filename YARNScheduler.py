@@ -11,6 +11,7 @@ from FSSchedulerApp import FSSchedulerApp
 from Resources import Resources
 from SchedulableStatus import SchedulableStatus
 
+import sys
 
 class YARNScheduler(object):
     '''
@@ -18,11 +19,11 @@ class YARNScheduler(object):
     '''
 
 
-    def __init__(self, cluster):
+    def __init__(self, cluster, consideringIO = True):
         '''
         Constructor
         '''
-        self._consideringIO = True
+        self._consideringIO = consideringIO
         self._rootQueue = FSParentQueue("root", None, self)
         self._rootQueue.setPolicy(PolicyParser.getInstance("fair"))
         self._queues = {"root": self._rootQueue}
@@ -43,7 +44,7 @@ class YARNScheduler(object):
         return self._currentTime
         
         
-    def createQueue(self, queueName, maxApps, policy, isLeaf, parentQueueName):
+    def createQueue(self, queueName, policy, isLeaf, parentQueueName, maxApps = sys.maxint):
         parentQueue = self._queues.get(parentQueueName)
         if isLeaf:
             queue = FSLeafQueue(queueName, parentQueue, self)
@@ -55,6 +56,8 @@ class YARNScheduler(object):
             
         queue.setMaxApps(maxApps)
         queue.setPolicy(PolicyParser.getInstance(policy))
+        
+        self._queues[queueName] = queue
         
         
     def consideringIO(self):
@@ -76,7 +79,7 @@ class YARNScheduler(object):
     def addApplication(self, job, queueName):
         queue = self._queues.get(queueName)
         
-        schedulerApp = FSSchedulerApp(job, self)
+        schedulerApp = FSSchedulerApp("App-" + job.getJobID(), job, self)
         
         queue.addApp(schedulerApp)
         schedulerApp.assignToQueue(queue)

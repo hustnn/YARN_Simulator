@@ -25,12 +25,16 @@ class WorkloadGenerator(object):
             self.genWorkload(queue)
             
             
+    def getQueues(self):
+        return self._queues
+            
+            
     def submitJobs(self, currentTime, scheduler):
         for k, v in self._queues.items():
             while(v["submittedJobs"] < v["totalJobs"] and (v["jobList"][v["submittedJobs"]]).getSubmissionTime() <= currentTime):
                 job = v["jobList"][v["submittedJobs"]]
                 v["submittedJobs"] += 1
-                scheduler.submitjob(job, k)
+                scheduler.submitJob(job, k)
                 
                 
     def allJobsSubmitted(self):

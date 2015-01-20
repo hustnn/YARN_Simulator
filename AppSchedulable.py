@@ -20,6 +20,7 @@ class AppSchedulable(Schedulable):
         '''
         Constructor
         '''
+        super(AppSchedulable, self).__init__()
         self._scheduler = scheduler
         self._app = app
         self._queue = queue
@@ -31,13 +32,17 @@ class AppSchedulable(Schedulable):
         return self._app
     
     
+    def getName(self):
+        return self._app.getApplicationID()
+    
+    
     def updateDemand(self):
         self._demand = Resources.createResource(0, 0, 0, 0)
         Resources.addTo(self._demand, self._app.getCurrentConsumption())
         
         for p in self._app.getPriorities():
             for task in self._app.getResourceRequests(p):
-                if task.getstatus() == SchedulableStatus.RUNNABLE:
+                if task.getStatus() == SchedulableStatus.RUNNABLE:
                     resource = task.getResource()
                     Resources.addTo(self._demand, resource)
                 
@@ -56,8 +61,7 @@ class AppSchedulable(Schedulable):
     
     def createContainer(self, node, task):
         containerID = self._app.getNewContainerID()
-        applicationID = self._app.getApplicationID()
-        return RMContainerInfo(containerID, applicationID, node, task, self._scheduler.getCurrentTime())
+        return RMContainerInfo(containerID, self._app, node, task, self._scheduler.getCurrentTime())
     
     
     def hasContainerForNode(self, priority, node):
@@ -144,6 +148,6 @@ class AppSchedulable(Schedulable):
         return Resources.none()
     
     
-    def assignContainerOnNode(self, node):
+    def assignContainer(self, node):
         return self.assignContainerByPriority(node, False) 
             
