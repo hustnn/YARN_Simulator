@@ -20,5 +20,11 @@ class FileBlock(object):
         self._blockType = blockType
         
         
+    def getBlockSize(self):
+        return self._size
+        
+        
     def assignToNode(self, node):
         self._location = node
+        
+        

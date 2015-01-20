@@ -19,6 +19,7 @@ class IOTask(Task):
         super(IOTask, self).__init__(taskID, priority, resource)
         self._block = block
         self._expectedNode = self._block._location
+        self._workload = self._block.getSize()
         
         
     def setLocalDiskBandwidth(self, disk):
@@ -49,7 +50,9 @@ class IOTask(Task):
                                           self._remoteNetworkBandwidth, 
                                           self._localNetworkBandwidth, 
                                           self._localDiskBandwidth)
-                
-            self._workload -= t * speed
+            if self._workload <= t * speed:
+                self._workload = 0
+            else:  
+                self._workload -= t * speed
             
             
