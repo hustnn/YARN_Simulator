@@ -59,6 +59,16 @@ class Job(object):
                 task.updateStatus(SchedulableStatus.PENDING)
                 
                 
+    def allTasksFinished(self):
+        ret = True
+        for task in self._taskList:
+            if task.getstatus() != SchedulableStatus.FINISHING:
+                ret = False
+                break
+            
+        return ret
+                
+                
     def updateStatusOfPendingTasks(self):
         for task in self._taskList:
             if task.getStatus() == SchedulableStatus.PENDING and task.parentsAllFinished():

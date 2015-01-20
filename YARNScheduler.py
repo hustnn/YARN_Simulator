@@ -141,6 +141,32 @@ class YARNScheduler(object):
         for app in self._applications:
             for liveContainer in app.getLiveContainers():
                 liveContainer.getTask().schedule(step)
+                
+                
+    def updateStatusAfterScheduling(self):
+        # update status of running containers
+        finishedContainerList = []
+        for app in self._applications:
+            for liveContainer in app.getLiveContainers():
+                task = liveContainer.getTask()
+                if task.getWorkload() == 0:
+                    finishedContainerList.append(liveContainer)
+                    
+        for container in finishedContainerList:
+            self.completeContainer(container)
+            
+        # update status of running jobs
+        finishedApps = []
+        for app in self._applications:
+            job = app.getJob()
+            if job.allTasksFinished():
+                job.updateStatus(SchedulableStatus.FINISHING)
+                finishedApps.append(app)
+            else:
+                job.updateStatusOfPendingTasks()
+                
+        for app in finishedApps:
+            self.removeApplication(app)
         
         
     def simulate(self, step, currentTime):
@@ -157,5 +183,5 @@ class YARNScheduler(object):
             node.calNetworkBandwidth()
         
         self.schedule(step)
-        
+        self.updateStatusAfterScheduling()
         

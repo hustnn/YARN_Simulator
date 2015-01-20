@@ -20,6 +20,10 @@ class ComputeTask(Task):
         self._workload = execTime
         
         
+    def getWorkload(self):
+        return self._workload
+        
+        
     def schedule(self, t):
         if self._workload < t:
             self._workload = 0

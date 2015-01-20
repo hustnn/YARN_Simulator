@@ -22,6 +22,10 @@ class IOTask(Task):
         self._workload = self._block.getSize()
         
         
+    def getWorkload(self):
+        return self._workload
+        
+        
     def setLocalDiskBandwidth(self, disk):
         self._localDiskBandwidth = disk
         

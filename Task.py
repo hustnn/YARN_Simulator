@@ -62,6 +62,11 @@ class Task(object):
         return self._scheduledNode
     
     
+    @abc.abstractmethod
+    def getWorkload(self):
+        return
+    
+    
     def parentsAllFinished(self):
         ret = True
         

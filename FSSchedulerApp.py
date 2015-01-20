@@ -35,6 +35,10 @@ class FSSchedulerApp(object):
     def getApplicationID(self):
         return self._applicationID
     
+    
+    def getJob(self):
+        return self._job
+    
         
     def getCurrentConsumption(self):
         return self._currentConsumption
