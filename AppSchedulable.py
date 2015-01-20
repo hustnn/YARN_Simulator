@@ -7,7 +7,7 @@ Created on Jan 8, 2015
 from Schedulable import Schedulable
 from Resources import Resources
 from RMContainerInfo import RMContainerInfo
-from IOTask import IOTask
+from SchedulableStatus import SchedulableStatus
 
 
 class AppSchedulable(Schedulable):
@@ -37,8 +37,9 @@ class AppSchedulable(Schedulable):
         
         for p in self._app.getPriorities():
             for task in self._app.getResourceRequests(p):
-                resource = task.getResource()
-                Resources.addTo(self._demand, resource)
+                if task.getstatus() == SchedulableStatus.RUNNABLE:
+                    resource = task.getResource()
+                    Resources.addTo(self._demand, resource)
                 
                 
     def getDemand(self):

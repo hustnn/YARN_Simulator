@@ -11,7 +11,6 @@ from FSSchedulerApp import FSSchedulerApp
 from Resources import Resources
 from SchedulableStatus import SchedulableStatus
 
-import time
 
 class YARNScheduler(object):
     '''
@@ -31,7 +30,14 @@ class YARNScheduler(object):
         self._applications = []
         self._waitingJobList = {}
         self._currentTime = 0
-
+        self._clusterCapacity = Resources.createResource(0, 0, 0, 0)
+        self.initClusterCapacity()
+        
+        
+    def initClusterCapacity(self):
+        for node in self._cluster.getAllNodes():
+            Resources.addTo(self._clusterCapacity, node.getCapacity())
+    
 
     def getCurrentTime(self):
         return self._currentTime
@@ -126,7 +132,9 @@ class YARNScheduler(object):
         
         
     def update(self):
-        return
+        self._rootQueue.updateDemand()
+        self._rootQueue.setFairShare(self._clusterCapacity)
+        self._rootQueue.recomputeShares()
     
     
     def schedule(self, step):
@@ -139,6 +147,8 @@ class YARNScheduler(object):
         self._currentTime = currentTime
         self.activateWaitingJobs(currentTime)
         
+        self.update()
+        
         for node in self._cluster.getAllNodes():
             self.nodeUpdate(node)
             
@@ -147,6 +157,5 @@ class YARNScheduler(object):
             node.calNetworkBandwidth()
         
         self.schedule(step)
-        self.update()
         
         

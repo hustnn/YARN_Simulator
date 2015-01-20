@@ -57,12 +57,10 @@ class Schedulable(object):
         return
     
     
-    @abc.abstractmethod
     def setFairShare(self, resource):
         self._fairShare = resource
         
         
-    @abc.abstractmethod
     def getFairShare(self):
         return self._fairShare
     
