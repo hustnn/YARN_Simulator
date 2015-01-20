@@ -9,7 +9,6 @@ from Resources import Resources
 from RMContainerInfo import RMContainerInfo
 from IOTask import IOTask
 
-import time
 
 class AppSchedulable(Schedulable):
     '''
@@ -24,7 +23,7 @@ class AppSchedulable(Schedulable):
         self._scheduler = scheduler
         self._app = app
         self._queue = queue
-        self._startTime = int(time.time())
+        self._startTime = scheduler.getCurrentTime()
         self._demand = Resources.createResource(0, 0, 0, 0)
         
         
@@ -57,7 +56,7 @@ class AppSchedulable(Schedulable):
     def createContainer(self, node, task):
         containerID = self._app.getNewContainerID()
         applicationID = self._app.getApplicationID()
-        return RMContainerInfo(containerID, applicationID, node, task)
+        return RMContainerInfo(containerID, applicationID, node, task, self._scheduler.getCurrentTime())
     
     
     def hasContainerForNode(self, priority, node):

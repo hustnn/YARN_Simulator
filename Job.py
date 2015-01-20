@@ -41,3 +41,25 @@ class Job(object):
     
     def getSubmissionTime(self):
         return self._submissionTime
+    
+    
+    def setStartTime(self, t):
+        self._startTime = t
+        
+        
+    def setFinishTime(self, t):
+        self._finishTime = t
+        
+        
+    def activeAllTasks(self):
+        for task in self._taskList:
+            if task.getstatus() == SchedulableStatus.WAITING and len(task.getParents()) == 0:
+                task.updateStatus(SchedulableStatus.RUNNABLE)
+            elif task.getstatus() == SchedulableStatus.WAITING and len(task.getParents()) > 0:
+                task.updateStatus(SchedulableStatus.PENDING)
+                
+                
+    def updateStatusOfPendingTasks(self):
+        for task in self._taskList:
+            if task.getStatus() == SchedulableStatus.PENDING and task.parentsAllFinished():
+                task.updateStatus(SchedulableStatus.RUNNABLE)

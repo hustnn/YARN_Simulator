@@ -34,8 +34,16 @@ class Task(object):
         child._parents.append(self)
         
         
+    def getParents(self):
+        return self._parents
+        
+        
     def updateStatus(self, status):
         self._status = status
+        
+        
+    def getStatus(self):
+        return self._status
         
         
     def getResource(self):
@@ -52,6 +60,16 @@ class Task(object):
     
     def getAllocatedNode(self):
         return self._scheduledNode
+    
+    
+    def parentsAllFinished(self):
+        ret = True
+        
+        for parent in self._parents:
+            if parent.getStatus() != SchedulableStatus.FINISHING:
+                ret = False
+                
+        return ret
     
     
     @abc.abstractmethod

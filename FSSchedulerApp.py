@@ -9,7 +9,6 @@ from Resources import Resources
 from SchedulableStatus import SchedulableStatus
 from IOTask import IOTask
 
-import time
 
 class FSSchedulerApp(object):
     '''
@@ -17,13 +16,14 @@ class FSSchedulerApp(object):
     '''
 
 
-    def __init__(self, job):
+    def __init__(self, job, scheduler):
         '''
         Constructor
         '''
         self._requests = {}
         #self._applicationID = applicationID
         self._job = job
+        self._scheduler = scheduler
         self.updateResourceRequests(job.getTaskList())
         self._queue = None
         self._containerCount = 0
@@ -41,7 +41,9 @@ class FSSchedulerApp(object):
     
     
     def getResourceRequests(self, priority):
-        return self._requests.get(priority, [])
+        requests = self._requests.get(priority, [])
+        runnableRequests = [request for request in requests if request.getstatus() == SchedulableStatus.RUNNABLE] 
+        return runnableRequests
     
         
     def setAppSchedulable(self, appSchedulable):
@@ -130,7 +132,7 @@ class FSSchedulerApp(object):
         task.updateStatus(SchedulableStatus.FINISHING)
         self.clearResourceConsumptionOfTask(task)
         
-        container.setFinishTime(int(time.time()))
+        container.setFinishTime(self._scheduler.getCurrentTime())
         self._liveContainers.remove(container)
         containerResource = container.getTask().getResource()
         Resources.subtractFrom(self._currentConsumption, containerResource)

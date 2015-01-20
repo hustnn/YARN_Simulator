@@ -4,7 +4,6 @@ Created on Jan 8, 2015
 @author: niuzhaojie
 '''
 
-import time
 
 class RMContainerInfo(object):
     '''
@@ -12,7 +11,7 @@ class RMContainerInfo(object):
     '''
 
 
-    def __init__(self, containerID, application, node, task):
+    def __init__(self, containerID, application, node, task, startTime):
         '''
         Constructor
         '''
@@ -20,7 +19,7 @@ class RMContainerInfo(object):
         self._application = application
         self._node = node
         self._task = task
-        self._startTime = int(time.time())
+        self._startTime = startTime
         self._finishTime = self._startTime
         
         

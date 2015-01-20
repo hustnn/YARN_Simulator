@@ -9,6 +9,9 @@ from FSLeafQueue import FSLeafQueue
 from policies.PolicyParser import PolicyParser
 from FSSchedulerApp import FSSchedulerApp
 from Resources import Resources
+from SchedulableStatus import SchedulableStatus
+
+import time
 
 class YARNScheduler(object):
     '''
@@ -27,6 +30,11 @@ class YARNScheduler(object):
         self._cluster = cluster
         self._applications = []
         self._waitingJobList = {}
+        self._currentTime = 0
+
+
+    def getCurrentTime(self):
+        return self._currentTime
         
         
     def createQueue(self, queueName, maxApps, policy, isLeaf, parentQueueName):
@@ -62,7 +70,7 @@ class YARNScheduler(object):
     def addApplication(self, job, queueName):
         queue = self._queues.get(queueName)
         
-        schedulerApp = FSSchedulerApp(job)
+        schedulerApp = FSSchedulerApp(job, self)
         
         queue.addApp(schedulerApp)
         schedulerApp.assignToQueue(queue)
@@ -106,9 +114,12 @@ class YARNScheduler(object):
         self._waitingJobList.setdefault(queueName, []).append(job)
         
         
-    def activateWaitingJobs(self):
+    def activateWaitingJobs(self, currentTime):
         for k, v in self._waitingJobList.items():
             for job in v:
+                job.updateStatus(SchedulableStatus.RUNNING)
+                job.setStartTime(currentTime)
+                job.activeAllTasks()
                 self.addApplication(job, k)
                 
         self._waitingJobList.clear()
@@ -119,13 +130,22 @@ class YARNScheduler(object):
     
     
     def schedule(self, step):
-        return
+        for app in self._applications:
+            for liveContainer in app.getLiveContainers():
+                liveContainer.getTask().schedule(step)
         
         
-    def simulate(self, step):
-        self.activateWaitingJobs()
+    def simulate(self, step, currentTime):
+        self._currentTime = currentTime
+        self.activateWaitingJobs(currentTime)
+        
         for node in self._cluster.getAllNodes():
             self.nodeUpdate(node)
+            
+        for node in self._cluster.getAllNodes():
+            node.calDiskBandwidth()
+            node.calNetworkBandwidth()
+        
         self.schedule(step)
         self.update()
         
