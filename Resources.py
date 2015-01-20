@@ -5,6 +5,7 @@ Created on Jan 11, 2015
 '''
 
 from Resource import Resource
+import math
 
 class Resources(object):
     '''
@@ -78,4 +79,25 @@ class Resources(object):
     @staticmethod
     def equals(lhs, rhs):
         return lhs == rhs
+    
+    
+    @staticmethod
+    def normalizedDotProduct(r1, r2, capacity):
+        m1 = float(r1.getMemory()) / capacity.getMemory()
+        c1 = float(r1.getCPU()) / capacity.getCPU()
+        m2 = float(r2.getMemory()) / capacity.getMemory()
+        c2 = float(r2.getCPU()) / capacity.getCPU()
+        return m1 * m2 + c1 * c2
+    
+    
+    @staticmethod
+    def cosineSimilarity(r1, r2):
+        dotProduct = r1.getMemory() * r2.getMemory() + r1.getCPU() * r2.getCPU()
+        len1 = math.sqrt(math.pow(r1.getMemory(), 2) + math.pow(r1.getCPU(), 2))
+        len2 = math.sqrt(math.pow(r2.getMemory(), 2) + math.pow(r2.getCPU(), 2))
+        
+        if len1 == 0 or len2 == 0:
+            return 0.0
+        else:
+            return float(dotProduct) / (len1 * len2)
         

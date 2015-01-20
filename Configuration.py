@@ -18,3 +18,7 @@ BLOCK_SIZE = 256
 SIMULATION_PATH = "/Users/niuzhaojie/GitHub/YARN_Simulator/"
 
 SIMULATION_STEP = 1 #sec 
+
+# penalty
+ANY_LOCALITY_PENALTY = 0.05
+REMOTE_PENALTY = 0.1

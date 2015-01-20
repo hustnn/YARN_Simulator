@@ -8,6 +8,8 @@ from Schedulable import Schedulable
 from Resources import Resources
 from RMContainerInfo import RMContainerInfo
 from SchedulableStatus import SchedulableStatus
+from SimilarityType import SimilarityType
+import Configuration
 
 
 class AppSchedulable(Schedulable):
@@ -26,6 +28,7 @@ class AppSchedulable(Schedulable):
         self._queue = queue
         self._startTime = scheduler.getCurrentTime()
         self._demand = Resources.createResource(0, 0, 0, 0)
+        self._multipleResourceFitness = 0.0
         
         
     def getApp(self):
@@ -150,4 +153,67 @@ class AppSchedulable(Schedulable):
     
     def assignContainer(self, node):
         return self.assignContainerByPriority(node, False) 
+    
+    
+    def getMultipleResourceFitness(self):
+        return self._multipleResourceFitness
             
+            
+    def calMultipleResourceFitness(self, node, similarityType = SimilarityType.PRODUCT):
+        fitness = -1.0
+        
+        priorities = self._app.getPriorities()
+        for priority in priorities:
+            if not self.hasContainerForNode(priority, node):
+                continue
+            
+            tasks = self._app.getResourceRequests(priority)
+            
+            #first, assign container to local request
+            localRequests = [task for task in tasks if task.getExpectedNode() == node]
+            if len(localRequests) > 0:
+                task = localRequests[0]
+                if self.taskFitsInNode(task, node):
+                    if similarityType == SimilarityType.PRODUCT:
+                        fitness = Resources.normalizedDotProduct(task.getResource(), node.getAvailableResource(), node.getCapacity())
+                    elif similarityType == SimilarityType.COSINE:
+                        fitness = Resources.cosineSimilarity(task.getResource(), node.getAvailableResource())
+                    else:
+                        fitness = 0.0
+                else:
+                    fitness = 0.0
+                break
+            
+            #second, assign contaienr to any request
+            anyRequests = [task for task in tasks if task.getExpectedNode() == None]
+            if len(anyRequests) > 0:
+                task = anyRequests[0]
+                if self.taskFitsInNode(task, node):
+                    if similarityType == SimilarityType.PRODUCT:
+                        fitness = Resources.normalizedDotProduct(task.getResource(), node.getAvailableResource(), node.getCapacity())
+                    elif similarityType == SimilarityType.COSINE:
+                        fitness = Resources.cosineSimilarity(task.getResource(), node.getAvailableResource())
+                    else:
+                        fitness = 0.0
+                    fitness = fitness * (1 - Configuration.ANY_LOCALITY_PENALTY)
+                else:
+                    fitness = 0.0
+                break
+            
+            #Lastly, assign container to other request
+            otherRequests = [task for task in tasks if task not in localRequests and task not in anyRequests]
+            if len(otherRequests) > 0:
+                task = otherRequests[0]
+                if self.taskFitsInNode(task, node):
+                    if similarityType == SimilarityType.PRODUCT:
+                        fitness = Resources.normalizedDotProduct(task.getResource(), node.getAvailableResource(), node.getCapacity())
+                    elif similarityType == SimilarityType.COSINE:
+                        fitness = Resources.cosineSimilarity(task.getResource(), node.getAvailableResource())
+                    else:
+                        fitness = 0.0
+                    fitness = fitness * (1 - Configuration.REMOTE_PENALTY)
+                else:
+                    fitness = 0.0
+                break
+            
+        self._multipleResourceFitness = fitness
