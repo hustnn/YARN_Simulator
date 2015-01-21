@@ -20,7 +20,7 @@ class FSQueue(Schedulable):
         self._scheduler = scheduler
         self._policy = None
         self._maxApps = sys.maxint
-        self._bestMulResFitness = 0.0
+        self._bestMulResFitness = -1.0
         
         
     def setMaxApps(self, num):
@@ -43,11 +43,11 @@ class FSQueue(Schedulable):
         return 0;
     
     
-    def setBestMulResFitness(self, best):
+    def setMultiResFitness(self, best):
         self._bestMulResFitness = best
         
         
-    def getBestMulResFitness(self):
+    def getMultiResFitness(self):
         return self._bestMulResFitness
     
     

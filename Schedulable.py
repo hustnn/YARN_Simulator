@@ -65,5 +65,6 @@ class Schedulable(object):
         return self._fairShare
     
     
-        
-        
+    @abc.abstractmethod
+    def getMultiResFitness(self):
+        return

@@ -15,7 +15,7 @@ class PolicyParser(object):
     instances = {}
     
     @classmethod
-    def getInstance(cls, policy):
+    def getInstance(cls, policy, capacity):
         text = policy.lower()
         policyInstance = cls.instances.get(text)
         if policyInstance == None:
@@ -27,5 +27,6 @@ class PolicyParser(object):
                 policyInstance = FairSharePolicy()
                 
             cls.instances[text] = policyInstance
-            
+        
+        policyInstance.initialize(capacity)
         return policyInstance

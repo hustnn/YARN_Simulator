@@ -11,12 +11,22 @@ from SchedulingPolicy import SchedulingPolicy
 from ResourceWeights import ResourceWeights
 from ResourceType import ResourceType
 from Utility import Utility
+from ComputeFairShares import ComputeFairShares
 
 class DominantResourceFairnessPolicy(SchedulingPolicy):
     '''
     classdocs
     '''
     NAME = "DRF"
+    
+    
+    def getComparator(self):
+        return self.compare
+    
+    
+    def computeShares(self, schedulables, totalResources):
+        ComputeFairShares.computeShares(schedulables, totalResources, ResourceType.MEMORY)
+        ComputeFairShares.computeShares(schedulables, totalResources, ResourceType.CPU)
 
     
     def compare(self, s1, s2):

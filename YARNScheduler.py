@@ -25,16 +25,16 @@ class YARNScheduler(object):
         '''
         Constructor
         '''
+        self._cluster = cluster
+        self._clusterCapacity = Resources.createResource(0, 0, 0, 0)
+        self.initClusterCapacity()
         self._consideringIO = consideringIO
         self._rootQueue = FSParentQueue("root", None, self)
-        self._rootQueue.setPolicy(PolicyParser.getInstance("fair"))
+        self._rootQueue.setPolicy(PolicyParser.getInstance("fair", self._clusterCapacity))
         self._queues = {"root": self._rootQueue}
-        self._cluster = cluster
         self._applications = []
         self._waitingJobList = {}
         self._currentTime = 0
-        self._clusterCapacity = Resources.createResource(0, 0, 0, 0)
-        self.initClusterCapacity()
         self._tradeoff = tradeoff
         self._similarityType = similarityType
         
@@ -63,7 +63,7 @@ class YARNScheduler(object):
             parentQueue.addChildQueue(queue)
             
         queue.setMaxApps(maxApps)
-        queue.setPolicy(PolicyParser.getInstance(policy))
+        queue.setPolicy(PolicyParser.getInstance(policy, self._clusterCapacity))
         
         self._queues[queueName] = queue
         
@@ -220,7 +220,7 @@ class YARNScheduler(object):
             
             # calculate the fitness for all applications
             for app in apps:
-                app.calMultipleResourceFitness()
+                app.calMultiResFitness(node, self._similarityType)
             
             # first, sort by default policy of the current queue
             apps.sort(comparator) 
@@ -230,12 +230,11 @@ class YARNScheduler(object):
             
             # get best fit app in the filtered list
             for app in selectedApps:
-                app.calMultipleResourceFitness(node, self._similarityType)
-                mulResFitness = app.getBestMulResFitness()
+                mulResFitness = app.getMultiResFitness()
                 if mulResFitness > maxMulResFitness:
                     maxMulResFitness = mulResFitness
                     
-            queue.setBestMulResFitness(maxMulResFitness)
+            queue.setMultiResFitness(maxMulResFitness)
         else:
             childQueues = queue.getChildQueues()
             
@@ -251,9 +250,9 @@ class YARNScheduler(object):
             
             # get best fit child queue in the filtered list
             for child in selectedChildQueues:
-                mulResFitness = child.getBestMulResFitness()
+                mulResFitness = child.getMultiResFitness()
                 if mulResFitness > maxMulResFitness:
                     maxMulResFitness = mulResFitness
                     
-            queue.setBestMulResFitness(maxMulResFitness)
+            queue.setMultiResFitness(maxMulResFitness)
                 

@@ -28,7 +28,7 @@ class AppSchedulable(Schedulable):
         self._queue = queue
         self._startTime = scheduler.getCurrentTime()
         self._demand = Resources.createResource(0, 0, 0, 0)
-        self._multipleResourceFitness = 0.0
+        self._multipleResourceFitness = -1.0
         
         
     def getApp(self):
@@ -155,11 +155,11 @@ class AppSchedulable(Schedulable):
         return self.assignContainerByPriority(node, False) 
     
     
-    def getMultipleResourceFitness(self):
+    def getMultiResFitness(self):
         return self._multipleResourceFitness
             
             
-    def calMultipleResourceFitness(self, node, similarityType = SimilarityType.PRODUCT):
+    def calMultiResFitness(self, node, similarityType = SimilarityType.PRODUCT):
         fitness = -1.0
         
         priorities = self._app.getPriorities()
