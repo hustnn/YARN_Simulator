@@ -12,6 +12,7 @@ class Resources(object):
     classdocs
     '''
     NONE = Resource(0, 0, 0, 0)
+    NOTFIT = Resource(-1, -1, -1 ,-1)
     
     @staticmethod
     def createResource(memory, cpu, disk, network):
@@ -74,6 +75,11 @@ class Resources(object):
     @classmethod
     def none(cls):
         return cls.NONE 
+    
+    
+    @classmethod
+    def notFit(cls):
+        return cls.NOTFIT
     
     
     @staticmethod

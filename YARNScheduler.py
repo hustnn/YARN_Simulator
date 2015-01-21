@@ -10,8 +10,10 @@ from policies.PolicyParser import PolicyParser
 from FSSchedulerApp import FSSchedulerApp
 from Resources import Resources
 from SchedulableStatus import SchedulableStatus
+from SimilarityType import SimilarityType
 
 import sys
+import math
 
 class YARNScheduler(object):
     '''
@@ -19,7 +21,7 @@ class YARNScheduler(object):
     '''
 
 
-    def __init__(self, cluster, consideringIO = True):
+    def __init__(self, cluster, consideringIO = True, tradeoff = 1.0, similarityType = SimilarityType.PRODUCT):
         '''
         Constructor
         '''
@@ -33,6 +35,8 @@ class YARNScheduler(object):
         self._currentTime = 0
         self._clusterCapacity = Resources.createResource(0, 0, 0, 0)
         self.initClusterCapacity()
+        self._tradeoff = tradeoff
+        self._similarityType = similarityType
         
         
     def initClusterCapacity(self):
@@ -42,6 +46,10 @@ class YARNScheduler(object):
 
     def getCurrentTime(self):
         return self._currentTime
+    
+    
+    def getTradeoff(self):
+        return self._tradeoff
         
         
     def createQueue(self, queueName, policy, isLeaf, parentQueueName, maxApps = sys.maxint):
@@ -110,6 +118,8 @@ class YARNScheduler(object):
                 assignedContainer = False
                 if node.getAvailableResource() == Resources.none() and len(self._applications) == 0:
                     break
+                
+                self.calMultiResourceFitness(self._rootQueue, node)
                 
                 assignedResource = self._rootQueue.assignContainer(node)
                 if assignedResource.getMemory() > Resources.none().getMemory():
@@ -199,3 +209,51 @@ class YARNScheduler(object):
         self.schedule(step)
         self.updateStatusAfterScheduling()
         
+        
+    def calMultiResourceFitness(self, queue, node):
+        comparator = queue.getPolicy().getComparator()
+        maxMulResFitness = -1.0
+        selectivity = 1 - self._tradeoff
+        
+        if type(queue) is FSLeafQueue:
+            apps = queue.getAppSchedulables()
+            
+            # calculate the fitness for all applications
+            for app in apps:
+                app.calMultipleResourceFitness()
+            
+            # first, sort by default policy of the current queue
+            apps.sort(comparator) 
+            # second, filtering
+            end = min(len(apps), max(1, math.ceil(len(apps) * selectivity)))
+            selectedApps = apps[0 : end]
+            
+            # get best fit app in the filtered list
+            for app in selectedApps:
+                app.calMultipleResourceFitness(node, self._similarityType)
+                mulResFitness = app.getBestMulResFitness()
+                if mulResFitness > maxMulResFitness:
+                    maxMulResFitness = mulResFitness
+                    
+            queue.setBestMulResFitness(maxMulResFitness)
+        else:
+            childQueues = queue.getChildQueues()
+            
+            # cal fitness for all child queues
+            for child in childQueues:
+                self.calMultiResourceFitness(child, node)
+                
+            # first, order by default policy of the current queue
+            childQueues.sort(comparator)
+            # second, filtering
+            end = min(len(childQueues), max(1, math.ceil(len(childQueues) * selectivity)))
+            selectedChildQueues = childQueues[0 : end]
+            
+            # get best fit child queue in the filtered list
+            for child in selectedChildQueues:
+                mulResFitness = child.getBestMulResFitness()
+                if mulResFitness > maxMulResFitness:
+                    maxMulResFitness = mulResFitness
+                    
+            queue.setBestMulResFitness(maxMulResFitness)
+                

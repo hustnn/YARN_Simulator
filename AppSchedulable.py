@@ -111,7 +111,7 @@ class AppSchedulable(Schedulable):
             
             return task.getResource()
         else:
-            return Resources.none()
+            return Resources.notFit()
             
     
     def assignContainerByPriority(self, node, reserved):
