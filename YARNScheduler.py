@@ -50,6 +50,10 @@ class YARNScheduler(object):
     
     def getTradeoff(self):
         return self._tradeoff
+    
+    
+    def getClusterCapacity(self):
+        return self._clusterCapacity
         
         
     def createQueue(self, queueName, policy, isLeaf, parentQueueName, maxApps = sys.maxint):

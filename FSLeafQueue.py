@@ -6,6 +6,9 @@ Created on Jan 12, 2015
 from FSQueue import FSQueue
 from Resources import Resources
 from AppSchedulable import AppSchedulable
+from policies.PolicyParser import PolicyParser
+
+import math
 
 class FSLeafQueue(FSQueue):
     '''
@@ -75,11 +78,35 @@ class FSLeafQueue(FSQueue):
         if node.getReservedContainer() != None:
             return assigned
         
-        self._appScheds.sort(self._policy.getComparator())
+        # performance and fairness tradeoff
+        selectivity = 1 - self._scheduler.getTradeoff()
         
+        # first, sort by current policy
+        self._appScheds.sort(self._policy.getComparator())
+        # second, filtering
+        end = min(len(self._appScheds), max(1, math.ceil(len(self._appScheds) * selectivity)))
+        selectedApps = self._appScheds[0 : end]
+        # thitd, sort selected list by fitness
+        multiResFitnessComparator = PolicyParser.getInstance("MRF", self._scheduler.getClusterCapacity()).getComparator()
+        selectedApps.sort(multiResFitnessComparator)
+        
+        for app in selectedApps:
+            assigned = app.assignContainer(node)
+            if not Resources.equals(assigned, Resources.none()):
+                break
+            
+        if Resources.equals(assigned, Resources.none()):
+            for app in self._appScheds[end:]:
+                assigned = app.assignContainer(node)
+                if not Resources.equals(assigned, Resources.none()):
+                    break
+        
+        # default implementation
+        '''
+        self._appScheds.sort(self._policy.getComparator())
         for sched in self._appScheds:
             assigned = sched.assignContainer(node)
             if not Resources.equals(assigned, Resources.none()):
-                break
+                break'''
             
         return assigned
