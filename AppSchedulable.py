@@ -100,7 +100,7 @@ class AppSchedulable(Schedulable):
             container = self.createContainer(node, task)
             
         if self.taskFitsInNode(task, node):
-            self._app.allocate(node, priority, container)
+            self._app.allocate(priority, container)
             
             if reserved:
                 # unserve

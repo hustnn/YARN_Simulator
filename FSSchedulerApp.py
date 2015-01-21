@@ -110,10 +110,10 @@ class FSSchedulerApp(object):
                 task.getExpectedNode().removeNetworkConsumingTask(task)
     
     
-    def allocate(self, node, priority, container):
+    def allocate(self, priority, container):
         # task --> running
         task = container.getTask()
-        task.nodeAllocate(node)
+        task.nodeAllocate(container.getNode())
         task.updateStatus(SchedulableStatus.RUNNING)
         self.updateResourceConsumptionOfTask(task)
         
@@ -124,6 +124,8 @@ class FSSchedulerApp(object):
             raise Exception("task not in requests")
         self._requests[priority].remove(container.getTask())
         
+        # currently, we only need use memory and cpu, so we just ignore the disk and network.
+        # Otherwise, we need calculate the disk and network by considering locality
         Resources.addTo(self._currentConsumption, container.getTask().getResource())
     
     
