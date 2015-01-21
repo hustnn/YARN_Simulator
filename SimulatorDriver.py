@@ -12,18 +12,18 @@ from WorkloadGenerator import WorkloadGenerator
 
 import Configuration
 
-
+import time
 
 if __name__ == '__main__':
     cluster = Cluster(10)
-    fileList = [{"name": "wiki-40G", "size": Configuration.BLOCK_SIZE * 4 * 40}]
+    fileList = [{"name": "wiki-40G", "size": Configuration.BLOCK_SIZE * 4 * 10}]
     for f in fileList:
         file = File(f["name"], f["size"])
         cluster.uploadFile(file)
         
-    scheduler = YARNScheduler(cluster)
+    scheduler = YARNScheduler(cluster, True, 1)
     
-    scheduler.createQueue("queue1", "fair", True, "root")
+    scheduler.createQueue("queue1", "DRF", True, "root")
     
     queueWorkloads = {"queue1": "q1-workload"}
     workloadGen = WorkloadGenerator(Configuration.SIMULATION_PATH, queueWorkloads, cluster)
@@ -45,5 +45,8 @@ if __name__ == '__main__':
         scheduler.simulate(Configuration.SIMULATION_STEP, currentTime)
         simulationStepCount += 1
         
-    print("simulation end")
+        #time.sleep(1)
+        print("\n")
+        
+    print("simulation end: " + str(simulationStepCount))
     

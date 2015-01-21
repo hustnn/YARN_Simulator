@@ -198,18 +198,7 @@ class YARNScheduler(object):
         for node in self._cluster.getAllNodes():
             node.calDiskBandwidth()
             node.calNetworkBandwidth()
-            
-        print("begin")
-        print("node: ")
-        for node in self._cluster.getAllNodes():
-            print(node.getAvailableResource())
-            
-        print("apps: ")
-        for app in self._applications:
-            print(app.getCurrentConsumption())
-            
-        print("end")
-        
+                    
         self.schedule(step)
         self.updateStatusAfterScheduling()
         
@@ -229,7 +218,7 @@ class YARNScheduler(object):
             # first, sort by default policy of the current queue
             apps.sort(comparator) 
             # second, filtering
-            end = min(len(apps), max(1, math.ceil(len(apps) * selectivity)))
+            end = int(min(len(apps), max(1, math.ceil(len(apps) * selectivity))))
             selectedApps = apps[0 : end]
             
             # get best fit app in the filtered list
@@ -249,7 +238,7 @@ class YARNScheduler(object):
             # first, order by default policy of the current queue
             childQueues.sort(comparator)
             # second, filtering
-            end = min(len(childQueues), max(1, math.ceil(len(childQueues) * selectivity)))
+            end = int(min(len(childQueues), max(1, math.ceil(len(childQueues) * selectivity))))
             selectedChildQueues = childQueues[0 : end]
             
             # get best fit child queue in the filtered list

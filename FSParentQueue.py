@@ -65,7 +65,7 @@ class FSParentQueue(FSQueue):
         # first, sort by current policy
         self._childQueues.sort(self._policy.getComparator())
         # second, filtering according to selectivity
-        end = min(len(self._childQueues), max(1, math.ceil(len(self._childQueues) * selectivity)))
+        end = int(min(len(self._childQueues), max(1, math.ceil(len(self._childQueues) * selectivity))))
         selectedChildQueues = self._childQueues[0 : end]
         # third, order the selected list according fitness
         multiResFitnessComparator = PolicyParser.getInstance("MRF", self._scheduler.getClusterCapacity()).getComparator()

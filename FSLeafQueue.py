@@ -78,13 +78,17 @@ class FSLeafQueue(FSQueue):
         if node.getReservedContainer() != None:
             return assigned
         
+        # debug
+        #for app in self._appScheds:
+        #    print(app.getApp().getApplicationID(), str(app.getResourceUsage()), app.getMultiResFitness())
+        
         # performance and fairness tradeoff
         selectivity = 1 - self._scheduler.getTradeoff()
         
         # first, sort by current policy
         self._appScheds.sort(self._policy.getComparator())
         # second, filtering
-        end = min(len(self._appScheds), max(1, math.ceil(len(self._appScheds) * selectivity)))
+        end = int(min(len(self._appScheds), max(1, math.ceil(len(self._appScheds) * selectivity))))
         selectedApps = self._appScheds[0 : end]
         # thitd, sort selected list by fitness
         multiResFitnessComparator = PolicyParser.getInstance("MRF", self._scheduler.getClusterCapacity()).getComparator()
@@ -93,12 +97,14 @@ class FSLeafQueue(FSQueue):
         for app in selectedApps:
             assigned = app.assignContainer(node)
             if not Resources.equals(assigned, Resources.none()):
-                break
+                #print("app: " + app.getApp().getApplicationID() + ", assigned: " + str(assigned))
+                break 
             
         if Resources.equals(assigned, Resources.none()):
             for app in self._appScheds[end:]:
                 assigned = app.assignContainer(node)
                 if not Resources.equals(assigned, Resources.none()):
+                    #print("app: " + app.getApp().getApplicationID() + ", assigned: " + str(assigned))
                     break
         
         # default implementation
