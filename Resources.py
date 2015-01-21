@@ -88,22 +88,40 @@ class Resources(object):
     
     
     @staticmethod
-    def normalizedDotProduct(r1, r2, capacity):
+    def normalizedDotProduct(r1, r2, capacity, considerIO = False):
         m1 = float(r1.getMemory()) / capacity.getMemory()
         c1 = float(r1.getCPU()) / capacity.getCPU()
+        d1 = float(r1.getDisk()) / capacity.getDisk()
+        n1 = float(r1.getNetwork()) / capacity.getNetwork()
         m2 = float(r2.getMemory()) / capacity.getMemory()
         c2 = float(r2.getCPU()) / capacity.getCPU()
-        return m1 * m2 + c1 * c2
+        d2 = float(r2.getDisk()) / capacity.getDisk()
+        n2 = float(r2.getNetwork()) / capacity.getNetwork()
+        
+        if not considerIO:
+            return m1 * m2 + c1 * c2
+        else:
+            return m1 * m2 + c1 * c2 + d1 * d2 + n1 * n2
     
     
     @staticmethod
-    def cosineSimilarity(r1, r2):
-        dotProduct = r1.getMemory() * r2.getMemory() + r1.getCPU() * r2.getCPU()
-        len1 = math.sqrt(math.pow(r1.getMemory(), 2) + math.pow(r1.getCPU(), 2))
-        len2 = math.sqrt(math.pow(r2.getMemory(), 2) + math.pow(r2.getCPU(), 2))
+    def cosineSimilarity(r1, r2, considerIO = False):
+        if not considerIO:
+            dotProduct = r1.getMemory() * r2.getMemory() + r1.getCPU() * r2.getCPU()
+            len1 = math.sqrt(math.pow(r1.getMemory(), 2) + math.pow(r1.getCPU(), 2))
+            len2 = math.sqrt(math.pow(r2.getMemory(), 2) + math.pow(r2.getCPU(), 2))
         
-        if len1 == 0 or len2 == 0:
-            return 0.0
+            if len1 == 0 or len2 == 0:
+                return 0.0
+            else:
+                return float(dotProduct) / (len1 * len2)
         else:
-            return float(dotProduct) / (len1 * len2)
+            dotProduct = r1.getMemory() * r2.getMemory() + r1.getCPU() * r2.getCPU() + r1.getDisk() * r2.getDisk() + r1.getNetwork() * r2.getNetwork()
+            len1 = math.sqrt(math.pow(r1.getMemory(), 2) + math.pow(r1.getCPU(), 2) + math.pow(r1.getDisk(), 2) + math.pow(r1.getNetwork(), 2))
+            len2 = math.sqrt(math.pow(r2.getMemory(), 2) + math.pow(r2.getCPU(), 2) + math.pow(r2.getDisk(), 2) + math.pow(r2.getNetwork(), 2))
+        
+            if len1 == 0 or len2 == 0:
+                return 0.0
+            else:
+                return float(dotProduct) / (len1 * len2)
         

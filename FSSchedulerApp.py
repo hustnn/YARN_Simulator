@@ -108,6 +108,30 @@ class FSSchedulerApp(object):
                 task.getAllocatedNode().removeNetworkConsumingTask(task)
                 task.getExpectedNode().removeDiskConsumingTask(task)
                 task.getExpectedNode().removeNetworkConsumingTask(task)
+                
+                
+    def addCurrentConsumption(self, task):
+        localResource = task.getResource()
+        remoteResource = None
+        
+        if task.getExpectedNode() != None and task.getExpectedNode() != task.getAllocatedNode():
+            remoteResource = Resources.createResource(0, 0, localResource.getDisk(), localResource.getNetwork())
+            
+        Resources.addTo(self._currentConsumption, localResource)
+        if remoteResource != None:
+            Resources.addTo(self._currentConsumption, remoteResource)
+            
+            
+    def subtractCurrentConsumption(self, task):
+        localResource = task.getResource()
+        remoteResource = None
+        
+        if task.getExpectedNode() != None and task.getExpectedNode() != task.getAllocatedNode():
+            remoteResource = Resources.createResource(0, 0, localResource.getDisk(), localResource.getNetwork())
+            
+        Resources.subtractFrom(self._currentConsumption, localResource)
+        if remoteResource != None:
+            Resources.subtractFrom(self._currentConsumption, remoteResource)
     
     
     def allocate(self, priority, container):
@@ -126,7 +150,8 @@ class FSSchedulerApp(object):
         
         # currently, we only need use memory and cpu, so we just ignore the disk and network.
         # Otherwise, we need calculate the disk and network by considering locality
-        Resources.addTo(self._currentConsumption, container.getTask().getResource())
+        #Resources.addTo(self._currentConsumption, container.getTask().getResource())
+        self.addCurrentConsumption(container.getTask())
     
     
     def containerCompleted(self, container):
@@ -136,9 +161,9 @@ class FSSchedulerApp(object):
         self.clearResourceConsumptionOfTask(task)
         
         container.setFinishTime(self._scheduler.getCurrentTime())
-        self._liveContainers.remove(container)
-        containerResource = container.getTask().getResource()
-        Resources.subtractFrom(self._currentConsumption, containerResource)
+        self._liveContainers.remove(container) 
+        #Resources.subtractFrom(self._currentConsumption, container.getTask().getResource())
+        self.subtractCurrentConsumption(container.getTask())
         
         
     def clearRequests(self):
