@@ -37,6 +37,7 @@ class YARNScheduler(object):
         self._currentTime = 0
         self._tradeoff = tradeoff
         self._similarityType = similarityType
+        self._finishedApps = []
         
         
     def initClusterCapacity(self):
@@ -54,6 +55,10 @@ class YARNScheduler(object):
     
     def getClusterCapacity(self):
         return self._clusterCapacity
+    
+    
+    def getFinishedApps(self):
+        return self._finishedApps
         
         
     def createQueue(self, queueName, policy, isLeaf, parentQueueName, maxApps = sys.maxint):
@@ -127,7 +132,9 @@ class YARNScheduler(object):
                 
                 assignedResource = self._rootQueue.assignContainer(node)
                 
-                if assignedResource.getMemory() > Resources.none().getMemory():
+                #if assignedResource.getMemory() > Resources.none().getMemory():
+                #    assignedContainer = True
+                if Resources.greaterAtLeastOne(assignedResource, Resources.none()):
                     assignedContainer = True
                     
                 if not assignedContainer:
@@ -161,7 +168,7 @@ class YARNScheduler(object):
                 liveContainer.getTask().schedule(step)
                 
                 
-    def updateStatusAfterScheduling(self):
+    def updateStatusAfterScheduling(self, currentTime):
         # update status of running containers
         finishedContainerList = []
         for app in self._applications:
@@ -185,6 +192,8 @@ class YARNScheduler(object):
                 
         for app in finishedApps:
             self.removeApplication(app)
+            app.getJob().setFinishTime(currentTime)
+            self._finishedApps.append(app)
         
         
     def simulate(self, step, currentTime):
@@ -221,7 +230,7 @@ class YARNScheduler(object):
             node.calNetworkBandwidth()
                     
         self.schedule(step)
-        self.updateStatusAfterScheduling()
+        self.updateStatusAfterScheduling(currentTime)
         
         
     def calMultiResourceFitness(self, queue, node):

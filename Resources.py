@@ -25,6 +25,11 @@ class Resources(object):
     
     
     @staticmethod
+    def greaterAtLeastOne(r1, r2):
+        return r1.getMemory() > r2.getMemory() or r1.getCPU() > r2.getCPU() or r1.getDisk() > r2.getDisk() or r1.getNetwork() > r2.getNetwork()
+    
+    
+    @staticmethod
     def addTo(lhs, rhs):
         lhs.setMemory(lhs.getMemory() + rhs.getMemory())
         lhs.setCPU(lhs.getCPU() + rhs.getCPU())

@@ -51,6 +51,10 @@ class Job(object):
         self._finishTime = t
         
         
+    def getFinishTime(self):
+        return self._finishTime
+        
+        
     def activeAllTasks(self):
         for task in self._taskList:
             if task.getStatus() == SchedulableStatus.WAITING and len(task.getParents()) == 0:

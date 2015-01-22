@@ -38,8 +38,8 @@ class DominantResourceFairnessPolicy(SchedulingPolicy):
         self.calculateShares(s1.getResourceUsage(), self._clusterCapacity, sharesOfCluster1, resourceOrder1, s1.getWeight())
         self.calculateShares(s2.getResourceUsage(), self._clusterCapacity, sharesOfCluster2, resourceOrder2, s2.getWeight())
         
-        s1Needy = s1.getDemand().getMemory() > s1.getResourceUsage().getMemory()
-        s2Needy = s2.getDemand().getMemory() > s2.getResourceUsage().getMemory()
+        s1Needy = s1.getDemand().getMemory() > s1.getResourceUsage().getMemory() or s1.getDemand().getCPU() > s1.getResourceUsage().getCPU()
+        s2Needy = s2.getDemand().getMemory() > s2.getResourceUsage().getMemory() or s2.getDemand().getCPU() > s2.getResourceUsage().getCPU()
         
         res = 0
         
