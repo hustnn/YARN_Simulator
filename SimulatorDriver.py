@@ -16,14 +16,14 @@ import time
 
 if __name__ == '__main__':
     cluster = Cluster(10)
-    fileList = [{"name": "wiki-40G", "size": Configuration.BLOCK_SIZE * 4 * 10}]
+    fileList = [{"name": "wiki-40G", "size": Configuration.BLOCK_SIZE * 4}]
     for f in fileList:
         file = File(f["name"], f["size"])
         cluster.uploadFile(file)
         
-    scheduler = YARNScheduler(cluster, True, 1)
+    scheduler = YARNScheduler(cluster, False, 1)
     
-    scheduler.createQueue("queue1", "DRF", True, "root")
+    scheduler.createQueue("queue1", "PACKING", True, "root")
     
     queueWorkloads = {"queue1": "q1-workload"}
     workloadGen = WorkloadGenerator(Configuration.SIMULATION_PATH, queueWorkloads, cluster)
@@ -46,7 +46,7 @@ if __name__ == '__main__':
         simulationStepCount += 1
         
         #time.sleep(1)
-        print("\n")
+        #print("\n")
         
     print("simulation end: " + str(simulationStepCount))
     

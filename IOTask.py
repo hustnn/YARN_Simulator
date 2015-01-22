@@ -46,14 +46,18 @@ class IOTask(Task):
         if self._status == SchedulableStatus.RUNNING:
             if self._expectedNode == None:
                 speed = min(self._localNetworkBandwidth, self._localDiskBandwidth)
+                #print("any: " + str(speed) + ", allocated node: " + str(self._scheduledNode))
             else:
                 if self._expectedNode == self._scheduledNode:
                     speed = speed = self._localDiskBandwidth / 2.0
+                    #print("local: " + str(speed) + ", allocated node: " + str(self._scheduledNode))
                 else:
                     speed =   speed = min(self._remoteDiskBandwidth, 
                                           self._remoteNetworkBandwidth, 
                                           self._localNetworkBandwidth, 
                                           self._localDiskBandwidth)
+                    #print("remote:" + str(speed) + ", allocated node: " + str(self._scheduledNode) + ", expected node: " + str(self._expectedNode))
+                    
             
             if self._workload <= t * speed:
                 self._workload = 0

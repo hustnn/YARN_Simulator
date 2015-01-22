@@ -126,6 +126,7 @@ class YARNScheduler(object):
                 self.calMultiResourceFitness(self._rootQueue, node)
                 
                 assignedResource = self._rootQueue.assignContainer(node)
+                
                 if assignedResource.getMemory() > Resources.none().getMemory():
                     assignedContainer = True
                     
@@ -193,7 +194,27 @@ class YARNScheduler(object):
         self.update()
         
         for node in self._cluster.getAllNodes():
+            #print("node id : " + str(node))
             self.nodeUpdate(node)
+            
+        #check locality
+        '''totalTask = 0
+        localityTask = 0
+        remoteTask = 0
+        anyTask = 0
+        for app in self._applications:
+            for liveContainer in app.getLiveContainers():
+                task = liveContainer.getTask()
+                totalTask += 1
+                if task.getExpectedNode() == None:
+                    anyTask += 1
+                else:
+                    if task.getExpectedNode() == task.getAllocatedNode():
+                        localityTask += 1
+                    else:
+                        remoteTask += 1
+                        
+        print(totalTask, localityTask, remoteTask, anyTask)'''
             
         for node in self._cluster.getAllNodes():
             node.calDiskBandwidth()
@@ -213,7 +234,9 @@ class YARNScheduler(object):
             
             # calculate the fitness for all applications
             for app in apps:
+                app.updateDemand()
                 app.calMultiResFitness(node, self._similarityType)
+                #print(app.getMultiResFitness(), str(node.getAvailableResource()))
             
             # first, sort by default policy of the current queue
             apps.sort(comparator) 
@@ -233,7 +256,10 @@ class YARNScheduler(object):
             
             # cal fitness for all child queues
             for child in childQueues:
+                child.updateDemand()
                 self.calMultiResourceFitness(child, node)
+                #print(child.getMultiResFitness(), str(node.getAvailableResource()))
+                
                 
             # first, order by default policy of the current queue
             childQueues.sort(comparator)

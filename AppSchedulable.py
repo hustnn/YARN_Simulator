@@ -84,11 +84,14 @@ class AppSchedulable(Schedulable):
             return Resources.fitsIn(task.getResource(), node.getAvailableResource())
         else:
             if task.getExpectedNode() == None:
+                #print("any" + ", request: " + str(task.getResource()) + ", node: " + str(node) + "," + str(node.getAvailableResource()))
                 return Resources.allFitIn(task.getResource(), node.getAvailableResource())
             else:
                 if task.getExpectedNode() == node:
+                    #print("local" + ", request: " + str(task.getResource()) + ", node: " + str(node) + "," + str(node.getAvailableResource()))
                     return Resources.localFitIn(task.getResource(), node.getAvailableResource())
                 else:
+                    #print("remote" + ", request: " + str(task.getResource()) + ", node: " + str(node) + "," + str(node.getAvailableResource()) + ", expected: " + str(task.getExpectedNode()) + "," + str(task.getExpectedNode().getAvailableResource()))
                     return Resources.remoteFitIn(task.getResource(), node.getAvailableResource(), task.getExpectedNode().getAvailableResource())
     
     
@@ -108,9 +111,10 @@ class AppSchedulable(Schedulable):
             
             # inform the node
             node.allocateContainer(container)
-            
+            #print(task.getResource())
             return task.getResource()
         else:
+            #print(Resources.notFit())
             return Resources.notFit()
             
     
@@ -190,10 +194,13 @@ class AppSchedulable(Schedulable):
             if len(localRequests) > 0:
                 task = localRequests[0]
                 if self.taskFitsInNode(task, node):
+                    #localResource = Resources.createResource(task.getResource().getMemory(), task.getResource().getCPU(), 
+                    #                                        task.getResource().getDisk(), 0)
+                    localResource = task.getResource()
                     if similarityType == SimilarityType.PRODUCT:
-                        fitness = Resources.normalizedDotProduct(task.getResource(), node.getAvailableResource(), node.getCapacity(), self._scheduler.consideringIO())
+                        fitness = Resources.normalizedDotProduct(localResource, node.getAvailableResource(), node.getCapacity(), self._scheduler.consideringIO())
                     elif similarityType == SimilarityType.COSINE:
-                        fitness = Resources.cosineSimilarity(task.getResource(), node.getAvailableResource(), self._scheduler.consideringIO())
+                        fitness = Resources.cosineSimilarity(localResource, node.getAvailableResource(), self._scheduler.consideringIO())
                     else:
                         fitness = 0.0
                 else:

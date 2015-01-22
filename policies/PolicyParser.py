@@ -3,7 +3,7 @@ Created on Jan 15, 2015
 
 @author: niuzhaojie
 '''
-
+from MultipleResourceFairnessPolicy import MultipleResourceFairnessPolicy
 from FairSharePolicy import FairSharePolicy
 from DominantResourceFairnessPolicy import DominantResourceFairnessPolicy
 
@@ -23,6 +23,8 @@ class PolicyParser(object):
                 policyInstance = FairSharePolicy()
             elif (text == DominantResourceFairnessPolicy.NAME.lower()):
                 policyInstance = DominantResourceFairnessPolicy()
+            elif (text == MultipleResourceFairnessPolicy.NAME.lower()):
+                policyInstance = MultipleResourceFairnessPolicy()
             else:
                 policyInstance = FairSharePolicy()
                 
@@ -30,3 +32,4 @@ class PolicyParser(object):
         
         policyInstance.initialize(capacity)
         return policyInstance
+    

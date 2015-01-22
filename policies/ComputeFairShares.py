@@ -22,6 +22,10 @@ class ComputeFairShares(object):
             return resource.getMemory()
         elif resourceType == ResourceType.CPU:
             return resource.getCPU()
+        elif resourceType == ResourceType.DISK:
+            return resource.getDisk()
+        elif resourceType == ResourceType.NETWORK:
+            return resource.getNetwork()
         else:
             raise Exception("invalide resource type")
         
@@ -32,6 +36,10 @@ class ComputeFairShares(object):
             resource.setMemory(val)
         elif resourceType == ResourceType.CPU:
             resource.setCPU(val)
+        elif resourceType == ResourceType.DISK:
+            resource.setDisk(val)
+        elif resourceType == ResourceType.NETWORK:
+            resource.setNetwork(val)
         else:
             raise Exception("invalid resource type")
     
