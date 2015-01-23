@@ -37,6 +37,7 @@ if __name__ == '__main__':
     simulationStepCount = 0
     
     while True:
+        print(workloadGen.allJobsSubmitted(), len(scheduler.getAllApplications()))
         if workloadGen.allJobsSubmitted() and len(scheduler.getAllApplications()) == 0:
             break
         
@@ -46,7 +47,7 @@ if __name__ == '__main__':
         simulationStepCount += 1
         
         #time.sleep(1)
-        print("\n")
+        #print("\n")
         
     for app in scheduler.getFinishedApps():
         print(app.getApplicationID(), app.getJob().getFinishTime())

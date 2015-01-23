@@ -54,9 +54,13 @@ class FSSchedulerNode(object):
         weight = 0
         for task in self._diskConsumingTasks:
             weight += task.getResource().getDisk()
-            
+        
+        bandwidth = 0
         for task in self._diskConsumingTasks:
-            bandwidth = float(diskBandwidth) * task.getResource().getDisk() / weight
+            if weight == 0:
+                bandwidth = 0
+            else:
+                bandwidth = float(diskBandwidth) * task.getResource().getDisk() / weight
             if task.getAllocatedNode() == self:
                 task.setLocalDiskBandwidth(bandwidth)
             else:
@@ -69,8 +73,12 @@ class FSSchedulerNode(object):
         for task in self._networkConsumingTasks:
             weight += task.getResource().getNetwork()
             
+        bandwidth = 0
         for task in self._networkConsumingTasks:
-            bandwidth = float(networkBandwidth) * task.getResource().getNetwork() / weight
+            if weight == 0:
+                bandwidth = 0
+            else:
+                bandwidth = float(networkBandwidth) * task.getResource().getNetwork() / weight
             if task.getAllocatedNode() == self:
                 task.setLocalNetworkBandwidth(bandwidth)
             else:
