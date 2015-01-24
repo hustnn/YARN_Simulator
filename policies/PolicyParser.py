@@ -3,9 +3,12 @@ Created on Jan 15, 2015
 
 @author: niuzhaojie
 '''
-from MultipleResourceFairnessPolicy import MultipleResourceFairnessPolicy
+
+
+from MultipleResourceFitnessPolicy import MultipleResourceFitnessPolicy
 from FairSharePolicy import FairSharePolicy
 from DominantResourceFairnessPolicy import DominantResourceFairnessPolicy
+from MultipleResourceFairnessPolicy import MultipleResourceFairnessPolicy
 
 
 class PolicyParser(object):
@@ -23,6 +26,8 @@ class PolicyParser(object):
                 policyInstance = FairSharePolicy()
             elif (text == DominantResourceFairnessPolicy.NAME.lower()):
                 policyInstance = DominantResourceFairnessPolicy()
+            elif (text == MultipleResourceFitnessPolicy.NAME.lower()):
+                policyInstance = MultipleResourceFitnessPolicy()
             elif (text == MultipleResourceFairnessPolicy.NAME.lower()):
                 policyInstance = MultipleResourceFairnessPolicy()
             else:

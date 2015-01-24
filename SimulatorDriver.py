@@ -47,7 +47,7 @@ if __name__ == '__main__':
         simulationStepCount += 1
         
         #time.sleep(1)
-        #print("\n")
+        print("\n")
         
     for app in scheduler.getFinishedApps():
         print(app.getApplicationID(), app.getJob().getFinishTime())

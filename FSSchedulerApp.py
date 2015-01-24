@@ -111,7 +111,12 @@ class FSSchedulerApp(object):
                 
                 
     def addCurrentConsumption(self, task):
-        localResource = task.getResource()
+        localResource = None
+        if task.getExpectedNode() == task.getAllocatedNode():
+            localResource = Resources.createResource(task.getResource().getMemory(), task.getResource().getCPU(), task.getResource().getDisk(), 0)
+        else:
+            localResource = task.getResource()
+            
         remoteResource = None
         
         if task.getExpectedNode() != None and task.getExpectedNode() != task.getAllocatedNode():
@@ -123,7 +128,12 @@ class FSSchedulerApp(object):
             
             
     def subtractCurrentConsumption(self, task):
-        localResource = task.getResource()
+        localResource = None
+        if task.getExpectedNode() == task.getAllocatedNode():
+            localResource = Resources.createResource(task.getResource().getMemory(), task.getResource().getCPU(), task.getResource().getDisk(), 0)
+        else:
+            localResource = task.getResource()
+            
         remoteResource = None
         
         if task.getExpectedNode() != None and task.getExpectedNode() != task.getAllocatedNode():

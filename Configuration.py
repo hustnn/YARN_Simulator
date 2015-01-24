@@ -15,7 +15,8 @@ BLOCK_SIZE = 256
 
 
 # simulation parameter
-SIMULATION_PATH = "/Users/niuzhaojie/GitHub/YARN_Simulator/"
+#SIMULATION_PATH = "/Users/niuzhaojie/GitHub/YARN_Simulator/"
+SIMULATION_PATH = "C:\\Users\\zhaojie\\Documents\\GitHub\\YARN_Simulator\\"
 
 SIMULATION_STEP = 1 #sec 
 

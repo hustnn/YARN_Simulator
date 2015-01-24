@@ -194,9 +194,9 @@ class AppSchedulable(Schedulable):
             if len(localRequests) > 0:
                 task = localRequests[0]
                 if self.taskFitsInNode(task, node):
-                    #localResource = Resources.createResource(task.getResource().getMemory(), task.getResource().getCPU(), 
-                    #                                        task.getResource().getDisk(), 0)
-                    localResource = task.getResource()
+                    localResource = Resources.createResource(task.getResource().getMemory(), task.getResource().getCPU(), 
+                                                            task.getResource().getDisk(), 0)
+                    #localResource = task.getResource()
                     if similarityType == SimilarityType.PRODUCT:
                         fitness = Resources.normalizedDotProduct(localResource, node.getAvailableResource(), node.getCapacity(), self._scheduler.consideringIO())
                     elif similarityType == SimilarityType.COSINE:
@@ -212,10 +212,12 @@ class AppSchedulable(Schedulable):
             if len(otherRequests) > 0:
                 task = otherRequests[0]
                 if self.taskFitsInNode(task, node):
+                    localResource = Resources.createResource(task.getResource().getMemory(), task.getResource().getCPU(), 
+                                                            task.getResource().getDisk(), 0)
                     if similarityType == SimilarityType.PRODUCT:
-                        fitness = Resources.normalizedDotProduct(task.getResource(), node.getAvailableResource(), node.getCapacity(), self._scheduler.consideringIO())
+                        fitness = Resources.normalizedDotProduct(localResource, node.getAvailableResource(), node.getCapacity(), self._scheduler.consideringIO())
                     elif similarityType == SimilarityType.COSINE:
-                        fitness = Resources.cosineSimilarity(task.getResource(), node.getAvailableResource(), self._scheduler.consideringIO())
+                        fitness = Resources.cosineSimilarity(localResource, node.getAvailableResource(), self._scheduler.consideringIO())
                     else:
                         fitness = 0.0
                     fitness = fitness * (1 - Configuration.REMOTE_PENALTY)

@@ -205,6 +205,7 @@ class YARNScheduler(object):
         for node in self._cluster.getAllNodes():
             #print("node id : " + str(node))
             self.nodeUpdate(node)
+            print(node.getAvailableResource())
             
         #check locality
         '''totalTask = 0
