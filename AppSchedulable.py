@@ -62,6 +62,10 @@ class AppSchedulable(Schedulable):
         return self._app.getCurrentConsumption()
     
     
+    def getAnyResourceRequest(self):
+        return self._app.getAnyResourceRequest()
+    
+    
     def createContainer(self, node, task):
         containerID = self._app.getNewContainerID()
         return RMContainerInfo(containerID, self._app, node, task, self._scheduler.getCurrentTime())
@@ -101,6 +105,12 @@ class AppSchedulable(Schedulable):
             container = node.getReservedContainer()
         else:
             container = self.createContainer(node, task)
+        
+        #debug
+        '''expectedNode = "none"
+        if task.getExpectedNode() != None:
+            expectedNode = task.getExpectedNode().getNodeID()
+        print("expected node: " + expectedNode)'''
             
         if self.taskFitsInNode(task, node):
             self._app.allocate(priority, container)
@@ -111,7 +121,7 @@ class AppSchedulable(Schedulable):
             
             # inform the node
             node.allocateContainer(container)
-            #print(task.getResource())
+            
             return task.getResource()
         else:
             #print(Resources.notFit())

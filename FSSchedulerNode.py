@@ -31,6 +31,10 @@ class FSSchedulerNode(object):
         
     def __str__(self):
         return str(self._nodeID)
+    
+    
+    def getNodeID(self):
+        return str(self._nodeID)
         
         
     def addDiskConsumingTask(self, task):

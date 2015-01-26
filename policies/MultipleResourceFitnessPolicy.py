@@ -24,7 +24,7 @@ class MultipleResourceFitnessPolicy(SchedulingPolicy):
         s1Fitness = s1.getMultiResFitness()
         s2Fitness = s2.getMultiResFitness()
         
-        return Utility.sign(s2Fitness - s2Fitness)
+        return Utility.sign(s2Fitness - s1Fitness)
     
     
     def getComparator(self):
@@ -34,4 +34,6 @@ class MultipleResourceFitnessPolicy(SchedulingPolicy):
     def computeShares(self, schedulables, totalResources):
         ComputeFairShares.computeShares(schedulables, totalResources, ResourceType.MEMORY)
         ComputeFairShares.computeShares(schedulables, totalResources, ResourceType.CPU)
+        ComputeFairShares.computeShares(schedulables, totalResources, ResourceType.DISK)
+        ComputeFairShares.computeShares(schedulables, totalResources, ResourceType.NETWORK)
         

@@ -44,6 +44,16 @@ class FSSchedulerApp(object):
         return self._currentConsumption
     
     
+    def getAnyResourceRequest(self):
+        for requests in self._requests.values():
+            if requests != None and len(requests) > 0:
+                request = requests[0]
+                if request.getStatus() == SchedulableStatus.RUNNABLE:
+                    return requests[0].getResource()
+            
+        return "null"
+    
+    
     def getResourceRequests(self, priority):
         requests = self._requests.get(priority, [])
         runnableRequests = [request for request in requests if request.getStatus() == SchedulableStatus.RUNNABLE] 

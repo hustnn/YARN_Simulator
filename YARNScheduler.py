@@ -59,6 +59,10 @@ class YARNScheduler(object):
     
     def getFinishedApps(self):
         return self._finishedApps
+    
+    
+    def getAllNodes(self):
+        return self._cluster.getAllNodes()
         
         
     def createQueue(self, queueName, policy, isLeaf, parentQueueName, maxApps = sys.maxint):
@@ -168,7 +172,7 @@ class YARNScheduler(object):
                 liveContainer.getTask().schedule(step)
                 
                 
-    def updateStatusAfterScheduling(self, currentTime):
+    def updateStatusAfterScheduling(self, step, currentTime):
         # update status of running containers
         finishedContainerList = []
         for app in self._applications:
@@ -192,7 +196,7 @@ class YARNScheduler(object):
                 
         for app in finishedApps:
             self.removeApplication(app)
-            app.getJob().setFinishTime(currentTime)
+            app.getJob().setFinishTime(currentTime + step)
             self._finishedApps.append(app)
         
         
@@ -231,7 +235,7 @@ class YARNScheduler(object):
             node.calNetworkBandwidth()
                     
         self.schedule(step)
-        self.updateStatusAfterScheduling(currentTime)
+        self.updateStatusAfterScheduling(step, currentTime)
         
         
     def calMultiResourceFitness(self, queue, node):

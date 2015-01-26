@@ -18,8 +18,8 @@ if __name__ == '__main__':
     cluster = Cluster(10)
     fileList = [{"name": "wiki-40G", "size": Configuration.BLOCK_SIZE * 4 * 10}]
     for f in fileList:
-        file = File(f["name"], f["size"])
-        cluster.uploadFile(file)
+        hadoopFile = File(f["name"], f["size"])
+        cluster.uploadFile(hadoopFile)
         
     scheduler = YARNScheduler(cluster, True, 1)
     
@@ -33,11 +33,10 @@ if __name__ == '__main__':
         for job in v["jobList"]:
             print(job.getSubmissionTime(), len(job.getTaskList()))'''
         
-    
     simulationStepCount = 0
     
     while True:
-        print(workloadGen.allJobsSubmitted(), len(scheduler.getAllApplications()))
+        #print(workloadGen.allJobsSubmitted(), len(scheduler.getAllApplications()))
         if workloadGen.allJobsSubmitted() and len(scheduler.getAllApplications()) == 0:
             break
         
@@ -47,10 +46,13 @@ if __name__ == '__main__':
         simulationStepCount += 1
         
         #time.sleep(1)
-        print("\n")
+        #print("\n")
         
     for app in scheduler.getFinishedApps():
         print(app.getApplicationID(), app.getJob().getFinishTime())
+        
+    #for node in scheduler.getAllNodes():
+    #    print(str(node.getAvailableResource()))
         
     print("simulation end: " + str(simulationStepCount))
     

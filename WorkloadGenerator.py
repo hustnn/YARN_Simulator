@@ -59,7 +59,7 @@ class WorkloadGenerator(object):
             # 2. genMapOnlyJob(jobID, inputFile, memory, cpu, disk, network, submissionTime)
             # 3. genMapReduceJob(jobID, inputFile, mapMemory, mapCPU, mapDisk, mapNetwork, numOfReduce, redMemory, redCPU, redDisk, redNetwork, submissionTime)
             if items[0] == "compute":
-                jobID = queue + "-" + str(self._queues[queue]["totalJobs"])
+                jobID = queue + "-" + str(self._queues[queue]["totalJobs"]) + "-compute"
                 numOfTask = int(items[1])
                 memory = int(items[2])
                 cpu = int(items[3])
@@ -69,7 +69,7 @@ class WorkloadGenerator(object):
                 submissionTime = int(items[7])
                 job = JobGenerator.genComputeIntensitveJob(jobID, numOfTask, memory, cpu, disk, network, execTime, submissionTime)
             elif items[0] == "map":
-                jobID = queue + "-" + str(self._queues[queue]["totalJobs"])
+                jobID = queue + "-" + str(self._queues[queue]["totalJobs"]) + "-map"
                 inputFile = self._cluster.getFile(items[1])
                 memory = int(items[2])
                 cpu = int(items[3])
@@ -78,7 +78,7 @@ class WorkloadGenerator(object):
                 submissionTime = int(items[6])
                 job = JobGenerator.genMapOnlyJob(jobID, inputFile, memory, cpu, disk, network, submissionTime)
             elif items[0] == "mapReduce":
-                jobID = queue + "-" + str(self._queues[queue]["totalJobs"])
+                jobID = queue + "-" + str(self._queues[queue]["totalJobs"]) + "-mapreduce"
                 inputFile = self._cluster.getFile(items[1])
                 mapMemory = int(items[2])
                 mapCPU = int(items[3])
