@@ -9,6 +9,7 @@ from File import File
 from Cluster import Cluster
 from YARNScheduler import YARNScheduler
 from WorkloadGenerator import WorkloadGenerator
+from SimilarityType import SimilarityType
 
 import Configuration
 
@@ -41,6 +42,7 @@ if __name__ == '__main__':
             break
         
         currentTime = simulationStepCount * Configuration.SIMULATION_STEP
+        print("currentTime: " + str(currentTime))
         workloadGen.submitJobs(currentTime, scheduler)
         scheduler.simulate(Configuration.SIMULATION_STEP, currentTime)
         simulationStepCount += 1
