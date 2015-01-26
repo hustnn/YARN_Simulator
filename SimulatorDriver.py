@@ -22,7 +22,7 @@ if __name__ == '__main__':
         hadoopFile = File(f["name"], f["size"])
         cluster.uploadFile(hadoopFile)
         
-    scheduler = YARNScheduler(cluster, True, 1)
+    scheduler = YARNScheduler(cluster, True, 0)
     
     scheduler.createQueue("queue1", "PACKING", True, "root")
     
