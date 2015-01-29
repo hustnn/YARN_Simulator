@@ -63,6 +63,14 @@ class YARNScheduler(object):
     
     def getAllNodes(self):
         return self._cluster.getAllNodes()
+    
+    
+    def getFinishedAppsInfo(self):
+        ret = {}
+        for app in self._finishedApps:
+            ret[app.getApplicationID()] = app.getJob().getFinishTime()
+            
+        return ret
         
         
     def createQueue(self, queueName, policy, isLeaf, parentQueueName, maxApps = sys.maxint):

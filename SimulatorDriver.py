@@ -15,18 +15,37 @@ import Configuration
 
 import time
 
-if __name__ == '__main__':
+
+def getFairnessStatistic(currentResult, baselineResult):
+    overallFairness = 0
+    unfairness = 0
+    relativeAppFairness = {}
+    
+    for appID, finishedTime in currentResult.items():
+        relativeAppFairness[appID] = baselineResult[appID] - finishedTime
+        
+    for v in relativeAppFairness.values():
+        overallFairness += v
+        if v < 0:
+            unfairness += v
+            
+    return overallFairness, unfairness, relativeAppFairness
+            
+
+def execSimulation(workloadFile, tradeoffFactor):
     cluster = Cluster(10)
     fileList = [{"name": "wiki-40G", "size": Configuration.BLOCK_SIZE * 4 * 10}]
     for f in fileList:
         hadoopFile = File(f["name"], f["size"])
         cluster.uploadFile(hadoopFile)
         
-    scheduler = YARNScheduler(cluster, True, 0)
+    scheduler = YARNScheduler(cluster, True, tradeoffFactor)
     
     scheduler.createQueue("queue1", "PACKING", True, "root")
     
-    queueWorkloads = {"queue1": "q1-workload"}
+    #queueWorkloads = {"queue1": "q1-workload"}
+    queueWorkloads = {"queue1": workloadFile}
+    
     workloadGen = WorkloadGenerator(Configuration.SIMULATION_PATH, queueWorkloads, cluster)
     
     '''for k in queueWorkloads.keys():
@@ -55,6 +74,14 @@ if __name__ == '__main__':
         
     #for node in scheduler.getAllNodes():
     #    print(str(node.getAvailableResource()))
-        
-    print("simulation end: " + str(simulationStepCount))
+    
+    makespan = simulationStepCount * Configuration.SIMULATION_STEP
+    print("simulation end: " + str(makespan))
+    
+    finishedApp = scheduler.getFinishedAppsInfo()
+    
+    return makespan, finishedApp
+
+if __name__ == '__main__':
+    execSimulation("q1-workload", 0)
     
