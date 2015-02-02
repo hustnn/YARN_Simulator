@@ -175,7 +175,11 @@ class YARNScheduler(object):
     
     
     def schedule(self, step):
+        '''for node in self._cluster.getAllNodes():
+            print(str(node.getAvailableResource()))'''
+            
         for app in self._applications:
+            #print(app.getApplicationID(), str(app.getCurrentConsumption()))
             for liveContainer in app.getLiveContainers():
                 liveContainer.getTask().schedule(step)
                 

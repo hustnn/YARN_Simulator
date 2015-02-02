@@ -23,8 +23,13 @@ class Utility(object):
     def compareTo(str1, str2):
         if str1 == str2:
             return 0
-        elif str1 < str2:
+        elif len(str1) < len(str2):
             return -1
-        else:
+        elif len(str1) > len(str2):
             return 1
+        else:
+            if str1 < str2:
+                return -1
+            else:
+                return 1
         

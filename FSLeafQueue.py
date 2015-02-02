@@ -87,7 +87,7 @@ class FSLeafQueue(FSQueue):
         selectivity = 1 - self._scheduler.getTradeoff()
         
         # first, sort by current policy
-        #self._appScheds.sort(self._policy.getComparator())
+        self._appScheds.sort(self._policy.getComparator())
         #for app in self._appScheds:
         #    print(app.getApp().getApplicationID(), str(app.getResourceUsage()), str(app.getStartTime()))
             

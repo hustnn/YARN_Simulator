@@ -12,11 +12,12 @@ class WorkloadGenerator(object):
     '''
 
 
-    def __init__(self, tracePath, queueWorkloadDict, cluster):
+    def __init__(self, tracePath, workloadPath, queueWorkloadDict, cluster):
         '''
         Constructor
         '''
         self._tracePath = tracePath
+        self._workloadPath = workloadPath
         self._cluster = cluster
         self._queues = {}
         for k, v in queueWorkloadDict.items():
@@ -48,7 +49,8 @@ class WorkloadGenerator(object):
             
             
     def genWorkload(self, queue):
-        fileName = self._tracePath + self._queues[queue]["traceFile"]
+        #fileName = self._tracePath + self._queues[queue]["traceFile"]
+        fileName = self._workloadPath + self._queues[queue]["traceFile"]
         file = open(fileName, "r")
         lines = file.readlines()
         job = None
