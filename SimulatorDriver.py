@@ -84,7 +84,7 @@ def execSimulation(workloadFile, tradeoffFactor, clusterSize = 10):
     return makespan, finishedApp
 
 if __name__ == '__main__':
-    print("all same and mixed combination")
+    '''print("all same and mixed combination")
     workloadList = ["allL-allS", "allL-mixed", "allS-mixed", "mixed-mixed"]
     for workload in workloadList:
         fairMakespan, fairFinishedApp = execSimulation(workload, 1)
@@ -408,23 +408,104 @@ if __name__ == '__main__':
     # varying workload load by adjust cluster size
     print("mixed and mixed varying cluster size")
     workload = "mixed-mixed"
-    for size in [1, 2, 4, 6, 8, 10, 12, 14, 16]:
+    for size in [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]:
         fairMakespan, fairFinishedApp = execSimulation(workload, 1, size)
         perfMakespan, perfFinishedApp = execSimulation(workload, 0, size)
+        overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+        #print(workload, fairMakespan, 0, perfMakespan, -1 * unfairness)
+        print(workload + "-" + str(size) + "," + str(float(perfMakespan) / fairMakespan) + "," + str(-1 * unfairness))
+    print("\n")
+    
+    print("mixed and mixed varying cluster size")
+    workload = "mixed-mixed-L4-S0"
+    for size in [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]:
+        fairMakespan, fairFinishedApp = execSimulation(workload, 1, size)
+        perfMakespan, perfFinishedApp = execSimulation(workload, 0, size)
+        overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+        #print(workload, fairMakespan, 0, perfMakespan, -1 * unfairness)
+        print(workload + "-" + str(size) + "," + str(float(perfMakespan) / fairMakespan) + "," + str(-1 * unfairness))
+    print("\n")'''
+    
+    '''
+    print("mixed and mixed varying job size of memory dominant job")
+    for jobSize in [10, 20, 40, 60, 80, 100]:
+        workload = "mixed-mixed-LJ" + str(jobSize)
+        fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+        perfMakespan, perfFinishedApp = execSimulation(workload, 0)
         overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
         #print(workload, fairMakespan, 0, perfMakespan, -1 * unfairness)
         print(workload + "," + str(float(perfMakespan) / fairMakespan) + "," + str(-1 * unfairness))
     print("\n")
     
-    '''workload = "allS-mixed-L5-S0"
-    fairMakespan, fairFinishedApp = execSimulation(workload, 1)
-    perfMakespan, perfFinishedApp = execSimulation(workload, 0)
-    overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
-    print(workload, fairMakespan, 0, perfMakespan, -1 * unfairness)
+    print("mixed and mixed varying task size of memory dominant job")
+    for taskSize in [5, 10, 15, 20, 25, 30]:
+        workload = "mixed-mixed-LT" + str(taskSize)
+        fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+        perfMakespan, perfFinishedApp = execSimulation(workload, 0)
+        overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+        #print(workload, fairMakespan, 0, perfMakespan, -1 * unfairness)
+        print(workload + "," + str(float(perfMakespan) / fairMakespan) + "," + str(-1 * unfairness))
+    print("\n")'''
     
-    workload = "allS-mixed-L5-S1"
-    fairMakespan, fairFinishedApp = execSimulation(workload, 1)
-    perfMakespan, perfFinishedApp = execSimulation(workload, 0)
-    overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
-    print(workload, fairMakespan, 0, perfMakespan, -1 * unfairness)'''
+    '''print("allL and allS varying S")
+    workloadList = []
+    for index in range(JobFileGenerator.TOTAL_INDEX_LENGTH / 2):
+        workloadList.append("allL-allS" + "-L" + str(4) + "-S" + str(index))
+    for workload in workloadList:
+        fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+        perfMakespan, perfFinishedApp = execSimulation(workload, 0)
+        overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+        #print(workload, fairMakespan, 0, perfMakespan, -1 * unfairness)
+        print(workload + "," + str(float(perfMakespan) / fairMakespan) + "," + str(-1 * unfairness))
+    print("\n")'''
+    
+    '''
+    print("one resource type varying S")
+    workloadList = []
+    for index in range(5):
+        workloadList.append("oneType" + "-L" + str(4) + "-S" + str(index))
+    for workload in workloadList:
+        fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+        perfMakespan, perfFinishedApp = execSimulation(workload, 0)
+        overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+        #print(workload, fairMakespan, 0, perfMakespan, -1 * unfairness)
+        print(workload + "," + str(float(perfMakespan) / fairMakespan) + "," + str(-1 * unfairness))
+    print("\n")
+    
+    print("two resource type varying S")
+    workloadList = []
+    for index in range(7):
+        workloadList.append("twoType" + "-L" + str(6) + "-S" + str(index))
+    for workload in workloadList:
+        fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+        perfMakespan, perfFinishedApp = execSimulation(workload, 0)
+        overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+        #print(workload, fairMakespan, 0, perfMakespan, -1 * unfairness)
+        print(workload + "," + str(float(perfMakespan) / fairMakespan) + "," + str(-1 * unfairness))
+    print("\n")
+    
+    print("three resource type varying S")
+    workloadList = []
+    for index in range(4):
+        workloadList.append("threeType" + "-L" + str(3) + "-S" + str(index))
+    for workload in workloadList:
+        fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+        perfMakespan, perfFinishedApp = execSimulation(workload, 0)
+        overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+        #print(workload, fairMakespan, 0, perfMakespan, -1 * unfairness)
+        print(workload + "," + str(float(perfMakespan) / fairMakespan) + "," + str(-1 * unfairness))
+    print("\n")'''
+    
+    print("two dominant resource type varying S")
+    workloadList = []
+    largeIndex = 6
+    for index in range(largeIndex + 1):
+        workloadList.append("twoDominant" + "-L" + str(largeIndex) + "-S" + str(index))
+    for workload in workloadList:
+        fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+        perfMakespan, perfFinishedApp = execSimulation(workload, 0)
+        overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+        #print(workload, fairMakespan, 0, perfMakespan, -1 * unfairness)
+        print(workload + "," + str(float(perfMakespan) / fairMakespan) + "," + str(-1 * unfairness))
+    print("\n")
         

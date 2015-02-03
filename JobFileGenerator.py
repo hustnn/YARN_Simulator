@@ -82,9 +82,10 @@ def genAllLAndAllSVaryingL(numOfJobs, numOfTasks, taskExecTime):
 
 def genAllLAndAllSVaryingS(numOfJobs, numOfTasks, taskExecTime):
     for smallIndex in range(TOTAL_INDEX_LENGTH / 2):
-        allL = getJobStr("compute", numOfTasks, MEMORY_LIST[5], CPU_LIST[5], DISK_LIST[5], NETWORK_LIST[5], taskExecTime, 0)
+        largeIndex = 4
+        allL = getJobStr("compute", numOfTasks, MEMORY_LIST[largeIndex], CPU_LIST[largeIndex], DISK_LIST[largeIndex], NETWORK_LIST[largeIndex], taskExecTime, 0)
         allS = getJobStr("compute", numOfTasks, MEMORY_LIST[smallIndex], CPU_LIST[smallIndex], DISK_LIST[smallIndex], NETWORK_LIST[smallIndex], taskExecTime, 0)
-        filename = Configuration.WORKLOAD_PATH + "allL-allS" + "-L" + str(5) + "-S" + str(smallIndex)
+        filename = Configuration.WORKLOAD_PATH + "allL-allS" + "-L" + str(largeIndex) + "-S" + str(smallIndex)
         jobs = [allL, allS]
         jobList = []
         for job in jobs:
@@ -379,8 +380,9 @@ def genResourceTypeCombinationVaryingL(numOfJobs, numOfTasks, taskExecTime):
             
             
 def genResourceTypeCombinationVaryingS(numOfJobs, numOfTasks, taskExecTime):
-    for index in range(TOTAL_INDEX_LENGTH / 2):
-        largeIndex = 5
+    largeIndex = 3
+    #for index in range(TOTAL_INDEX_LENGTH / 2):
+    for index in range(largeIndex + 1):
         smallIndex = index
         
         jobs = {"oneType" + "-L" + str(largeIndex) + "-S" + str(smallIndex): [],
@@ -579,8 +581,9 @@ def genDominantResourceCombinationVaryingL(numOfJobs, numOfTasks, taskExecTime):
             
             
 def genDominantResourceCombinationVaryingS(numOfJobs, numOfTasks, taskExecTime):
-    for index in range(TOTAL_INDEX_LENGTH / 2):
-        largeIndex = 5
+    largeIndex = 6
+    #for index in range(TOTAL_INDEX_LENGTH / 2):
+    for index in range(largeIndex + 1):
         smallIndex = index
     
         jobs = {"oneDominant" + "-L" + str(largeIndex) + "-S" + str(smallIndex): [],
