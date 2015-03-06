@@ -5,6 +5,7 @@ Created on Jan 8, 2015
 '''
 import sys
 
+
 sys.path.append('../')
 
 from SchedulingPolicy import SchedulingPolicy
@@ -24,7 +25,11 @@ class MultipleResourceFitnessPolicy(SchedulingPolicy):
         s1Fitness = s1.getMultiResFitness()
         s2Fitness = s2.getMultiResFitness()
         
-        return Utility.sign(s2Fitness - s1Fitness)
+        res = s2Fitness - s1Fitness
+        if abs(res) <= 0.01:
+            res = 0
+        
+        return Utility.sign(res)
     
     
     def getComparator(self):

@@ -25,6 +25,10 @@ class Task(object):
         self._scheduledNode = None
         
         
+    def getTaskID(self):
+        return self._taskID
+        
+        
     def nodeAllocate(self, node):
         self._scheduledNode = node
         

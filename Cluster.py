@@ -13,17 +13,17 @@ class Cluster(object):
     classdocs
     '''
             
-    def __init__(self, numOfNodes):
+    def __init__(self, numOfNodes, load = 0.0):
         '''
         Constructor
         '''
         self._nodeList = []
         self._fileList = {}
         for i in range(numOfNodes):
-            self._nodeList.append(FSSchedulerNode(i, Resource(Configuration.NODE_MEMORY, 
-                                                              Configuration.NODE_CPU,
-                                                              Configuration.NODE_DISK_BANDWIDTH,
-                                                              Configuration.NODE_NETWORK_BANDWIDTH)))
+            self._nodeList.append(FSSchedulerNode(i, Resource(Configuration.NODE_MEMORY * (1 - load), 
+                                                              Configuration.NODE_CPU * (1 - load),
+                                                              Configuration.NODE_DISK_BANDWIDTH * (1 - load),
+                                                              Configuration.NODE_NETWORK_BANDWIDTH * (1 - load))))
             
     
     def uploadFile(self, file):

@@ -35,6 +35,7 @@ class YARNScheduler(object):
         self._applications = []
         self._waitingJobList = {}
         self._currentTime = 0
+        # 0 <= tradeoff knob <= 1, 0 indicates complete performance optimization, 1 indicates complete fairness 
         self._tradeoff = tradeoff
         self._similarityType = similarityType
         self._finishedApps = []
@@ -245,6 +246,13 @@ class YARNScheduler(object):
         for node in self._cluster.getAllNodes():
             node.calDiskBandwidth()
             node.calNetworkBandwidth()
+            
+            
+        # debug: print scheduled task info
+        '''for node in self._cluster.getAllNodes():
+            print(node.getNodeID())
+            for container in node.getRunningContainers():
+                print(container.getTask().getTaskID())'''
                     
         self.schedule(step)
         self.updateStatusAfterScheduling(step, currentTime)
