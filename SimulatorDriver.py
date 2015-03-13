@@ -609,7 +609,7 @@ if __name__ == '__main__':
         perfMakespan, perfFinishedApp = execSimulation(workload, 0)
         overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
         print(str(index + 1) + "," + str(fairMakespan) + "," + str(perfMakespan) + "," + str(float(perfMakespan) / fairMakespan) + "," + str(-1 * unfairness))
-    print("\n")'''
+    print("\n")
     
     print("mixed and mixed varying cluster load")
     workload = "mixed-mixed"
@@ -619,7 +619,7 @@ if __name__ == '__main__':
         perfMakespan, perfFinishedApp = execSimulation(workload, 0, 10, load)
         overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
         print(str(load) + "," + str(fairMakespan) + "," + str(perfMakespan) + "," + str(float(perfMakespan) / fairMakespan) + "," + str(-1 * unfairness))
-    print("\n")
+    print("\n")'''
     
     #debug
     '''print("three resource type varying L")

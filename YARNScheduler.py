@@ -21,7 +21,7 @@ class YARNScheduler(object):
     '''
 
 
-    def __init__(self, cluster, consideringIO = True, tradeoff = 1.0, similarityType = SimilarityType.PRODUCT):
+    def __init__(self, cluster, consideringIO = True, tradeoff = 1.0, similarityType = SimilarityType.PRODUCT, batchSize = 1):
         '''
         Constructor
         '''
@@ -39,6 +39,7 @@ class YARNScheduler(object):
         self._tradeoff = tradeoff
         self._similarityType = similarityType
         self._finishedApps = []
+        
         
         
     def initClusterCapacity(self):
@@ -143,7 +144,13 @@ class YARNScheduler(object):
                 
                 self.calMultiResourceFitness(self._rootQueue, node)
                 
+                #default hadoop scheduling algorithm: call parent queue assign container method, and then leaf queue assign container method
                 assignedResource = self._rootQueue.assignContainer(node)
+                
+                #batch scheduling, if batch scheduling list is empty, select k jobs (batch size) accroding to fairness
+                #decide the scheduling policy using rules
+                #if batch scheduling list is not empty, scheduling the job one by one according decided rule
+                
                 
                 #if assignedResource.getMemory() > Resources.none().getMemory():
                 #    assignedContainer = True
