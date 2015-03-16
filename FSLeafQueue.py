@@ -91,6 +91,9 @@ class FSLeafQueue(FSQueue):
         #for app in self._appScheds:
         #    print(app.getApp().getApplicationID(), str(app.getResourceUsage()), str(app.getStartTime()))
             
+        #if selectivity > 1:
+        #    pass
+            
         # second, filtering
         end = int(min(len(self._appScheds), max(1, math.ceil(len(self._appScheds) * selectivity))))
         selectedApps = self._appScheds[0 : end]
