@@ -656,12 +656,12 @@ if __name__ == '__main__':
     #perfMakespan, perfFinishedApp = execSimulation(workload, 0)
     #overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
     #print(str(fairMakespan) + "," + str(perfMakespan) + "," + str(-1 * unfairness))
-    knobs = [0.99, 0.98, 0.97, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
+    knobs = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0]
     for knob in knobs:
         perfMakespan, perfFinishedApp = execSimulation(workload, knob)
         overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
         print("knob-" + str(knob) + "," + str(perfMakespan) + "," + str(-1 * unfairness))
-        for i in range(5):
+        for i in range(3):
             randMakespan, randFinishedApp = execSimulation(workload, knob, 10, 0.0, SimilarityType.PRODUCT, "random")
             overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(randFinishedApp, fairFinishedApp)
             print(str(fairMakespan) + "," + str(randMakespan) + "," + str(-1 * unfairness))
