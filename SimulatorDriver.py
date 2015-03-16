@@ -35,16 +35,16 @@ def getFairnessStatistic(currentResult, baselineResult):
     return overallFairness, unfairness, relativeAppFairness
             
 # tradeoff factor = 1 means fair
-def execSimulation(workloadFile, tradeoffFactor, clusterSize = 10, load = 0.0):
+def execSimulation(workloadFile, tradeoffFactor, clusterSize = 10, load = 0.0, similarityType = SimilarityType.PRODUCT, schedulingMode = "default"):
     cluster = Cluster(clusterSize, load)
     fileList = [{"name": "wiki-40G", "size": Configuration.BLOCK_SIZE * 4 * 10}]
     for f in fileList:
         hadoopFile = File(f["name"], f["size"])
         cluster.uploadFile(hadoopFile)
         
-    scheduler = YARNScheduler(cluster, True, tradeoffFactor)
+    scheduler = YARNScheduler(cluster, True, tradeoffFactor, similarityType, schedulingMode)
     
-    scheduler.createQueue("queue1", "PACKING", True, "root")
+    scheduler.createQueue("queue1", "MULTIFAIR", True, "root")
     
     #queueWorkloads = {"queue1": "q1-workload"}
     queueWorkloads = {"queue1": workloadFile}
@@ -637,6 +637,35 @@ if __name__ == '__main__':
     overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
     print(str(fairMakespan) + "," + str(perfMakespan) + "," + str(float(perfMakespan) / fairMakespan) + "," + str(-1 * unfairness))'''
     
+    '''workload = "finding1-random"
+    fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+    #perfMakespan, perfFinishedApp = execSimulation(workload, 0)
+    #overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+    #print(str(fairMakespan) + "," + str(perfMakespan) + "," + str(-1 * unfairness))
+    #knobs = [0.98, 0.95, 0.92, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
+    #for knob in knobs:
+    for i in range(10):
+    #    print("knob: " + str(knob))
+        #randMakespan, randFinishedApp = execSimulation(workload, knob, 10, 0.0, SimilarityType.PRODUCT, "random")
+        randMakespan, randFinishedApp = execSimulation(workload, 1, 10, 0.0, SimilarityType.PRODUCT, "random")
+        overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(randFinishedApp, fairFinishedApp)
+        print(str(fairMakespan) + "," + str(randMakespan) + "," + str(-1 * unfairness))'''
+    
+    workload = "finding1-random"
+    fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+    #perfMakespan, perfFinishedApp = execSimulation(workload, 0)
+    #overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+    #print(str(fairMakespan) + "," + str(perfMakespan) + "," + str(-1 * unfairness))
+    knobs = [0.99, 0.98, 0.97, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
+    for knob in knobs:
+        perfMakespan, perfFinishedApp = execSimulation(workload, knob)
+        overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+        print("knob-" + str(knob) + "," + str(perfMakespan) + "," + str(-1 * unfairness))
+        for i in range(5):
+            randMakespan, randFinishedApp = execSimulation(workload, knob, 10, 0.0, SimilarityType.PRODUCT, "random")
+            overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(randFinishedApp, fairFinishedApp)
+            print(str(fairMakespan) + "," + str(randMakespan) + "," + str(-1 * unfairness))
+    
     # finding 2
     '''workload = "finding2-perf-small"
     print(workload)
@@ -645,9 +674,9 @@ if __name__ == '__main__':
     for knob in knobs:
         perfMakespan, perfFinishedApp = execSimulation(workload, knob)
         overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
-        print(str(knob) + "," + str(perfMakespan) + "," + str(-1 * unfairness))
+        print(str(knob) + "," + str(perfMakespan) + "," + str(-1 * unfairness))'''
     
-    workload = "finding2-perf-large"
+    '''workload = "finding2-perf-large"
     print(workload)
     knobs = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     fairMakespan, fairFinishedApp = execSimulation(workload, 1)
@@ -657,7 +686,7 @@ if __name__ == '__main__':
         print(str(knob) + "," + str(perfMakespan) + "," + str(-1 * unfairness))'''
     
     # finding 4
-    print("mixed and mixed varying S")
+    '''print("mixed and mixed varying S")
     workloadList = []
     for index in range(5):
         workloadList.append("finding4" + "-L" + str(5) + "-S" + str(index))
@@ -668,4 +697,14 @@ if __name__ == '__main__':
         perfMakespan, perfFinishedApp = execSimulation(workload, 0)
         overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
         print(str(index + 1) + "," + str(fairMakespan) + "," + str(perfMakespan) + "," + str(-1 * unfairness))
-    print("\n")
+    print("\n")'''
+        
+    '''workloadList = ["finding4-memory", "finding4-memorycpu", "finding4-memorycpudisk", "finding4-memorycpudisknetwork"]
+    print("combination,fair makespan,perf makespan,unfairness")
+    for index in range(len(workloadList)):
+        workload = workloadList[index]
+        fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+        perfMakespan, perfFinishedApp = execSimulation(workload, 0)
+        overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+        print(str(index + 1) + "," + str(fairMakespan) + "," + str(perfMakespan) + "," + str(-1 * unfairness))
+    print("\n")'''

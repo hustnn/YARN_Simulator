@@ -14,6 +14,7 @@ from SimilarityType import SimilarityType
 
 import sys
 import math
+from random import randint
 
 class YARNScheduler(object):
     '''
@@ -21,7 +22,7 @@ class YARNScheduler(object):
     '''
 
 
-    def __init__(self, cluster, consideringIO = True, tradeoff = 1.0, similarityType = SimilarityType.PRODUCT, batchSize = 1):
+    def __init__(self, cluster, consideringIO = True, tradeoff = 1.0, similarityType = SimilarityType.PRODUCT, schedulingMode = "default", batchSize = 1, entropy = 1.0):
         '''
         Constructor
         '''
@@ -40,6 +41,12 @@ class YARNScheduler(object):
         self._similarityType = similarityType
         self._finishedApps = []
         
+        # scheduling model
+        self._schedulingMode = schedulingMode
+        self._batchSize = batchSize
+        self._jobsScheduledInBatch = []
+        self._entropyThreshold = entropy
+        self._batchPolicy = "fair"
         
         
     def initClusterCapacity(self):
@@ -145,21 +152,42 @@ class YARNScheduler(object):
                 self.calMultiResourceFitness(self._rootQueue, node)
                 
                 #default hadoop scheduling algorithm: call parent queue assign container method, and then leaf queue assign container method
-                assignedResource = self._rootQueue.assignContainer(node)
+                if self._schedulingMode == "default":
+                    assignedResource = self._rootQueue.assignContainer(node)
+                    if Resources.greaterAtLeastOne(assignedResource, Resources.none()):
+                        assignedContainer = True
+                        
+                    if not assignedContainer:
+                        break
+                elif self._schedulingMode == "random":
+                    # random scheduling
+                    applications = self._rootQueue.getAllAppSchedulables()
+                    if len(applications) > 0:
+                        fairCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
+                        applications.sort(fairCmp)
+                        selectivity = 1 - self._tradeoff
+                        end = int(min(len(applications), max(1, math.ceil(len(applications) * selectivity))))
+                        selectedApps = applications[0 : end]
+                        index = randint(0, len(selectedApps) - 1)
+                        app = selectedApps[index]
+                        assignedResource = app.assignContainer(node)
+                        if Resources.greaterAtLeastOne(assignedResource, Resources.none()):
+                            assignedContainer = True
+                    
+                    if not assignedContainer:
+                        break
                 
                 #batch scheduling, if batch scheduling list is empty, select k jobs (batch size) accroding to fairness
                 #decide the scheduling policy using rules
                 #if batch scheduling list is not empty, scheduling the job one by one according decided rule
+                '''applications = self._rootQueue.getAllAppSchedulables()
+                if len(self._jobsScheduledInBatch) == 0:
+                    fairPolicyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
+                    applications.sort(fairPolicyCmp)
+                    self._jobsScheduledInBatch = applications[0: min(len(applications), self._batchSize)]'''
+               
+               
                 
-                
-                #if assignedResource.getMemory() > Resources.none().getMemory():
-                #    assignedContainer = True
-                if Resources.greaterAtLeastOne(assignedResource, Resources.none()):
-                    assignedContainer = True
-                    
-                if not assignedContainer:
-                    break
-        
         
     def submitJob(self, job, queueName):
         self._waitingJobList.setdefault(queueName, []).append(job)

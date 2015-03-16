@@ -19,7 +19,7 @@ class MultipleResourceFairnessPolicy(SchedulingPolicy):
     '''
     classdocs
     '''
-    NAME = "PACKING"
+    NAME = "MULTIFAIR"
     
     
     def getComparator(self):

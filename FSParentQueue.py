@@ -96,3 +96,12 @@ class FSParentQueue(FSQueue):
         
     def getChildQueues(self):
         return self._childQueues
+    
+    
+    def getAllAppSchedulables(self):
+        apps = []
+        for child in self._childQueues:
+            childApps = child.getAppSchedulables()
+            apps.extend(childApps)
+            
+        return apps
