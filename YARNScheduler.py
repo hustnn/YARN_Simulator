@@ -22,7 +22,7 @@ class YARNScheduler(object):
     '''
 
 
-    def __init__(self, cluster, consideringIO = True, tradeoff = 1.0, similarityType = SimilarityType.PRODUCT, schedulingMode = "default", batchSize = 1, entropy = 1.0):
+    def __init__(self, cluster, consideringIO = True, tradeoff = 1.0, similarityType = SimilarityType.PRODUCT, schedulingMode = "default", randomFactor = 0, batchSize = 1, entropy = 1.0):
         '''
         Constructor
         '''
@@ -43,6 +43,7 @@ class YARNScheduler(object):
         
         # scheduling model
         self._schedulingMode = schedulingMode
+        self._randomFactor = randomFactor
         self._batchSize = batchSize
         self._jobsScheduledInBatch = []
         self._entropyThreshold = entropy
@@ -161,30 +162,36 @@ class YARNScheduler(object):
                         break
                 elif self._schedulingMode == "random":
                     # random scheduling
-                    applications = self._rootQueue.getAllAppSchedulables()
-                    if len(applications) > 0:
-                        fairCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
-                        applications.sort(fairCmp)
-                        selectivity = 1 - self._tradeoff
-                        end = int(min(len(applications), max(1, math.ceil(len(applications) * selectivity))))
-                        selectedApps = applications[0 : end]
-                        index = randint(0, len(selectedApps) - 1)
-                        app = selectedApps[index]
-                        assignedResource = app.assignContainer(node)
+                    seed = randint(0, 99)
+                    if self._randomFactor < seed:
+                        assignedResource = self._rootQueue.assignContainer(node)
                         if Resources.greaterAtLeastOne(assignedResource, Resources.none()):
                             assignedContainer = True
-                    
-                    if not assignedContainer:
-                        break
-                
-                #batch scheduling, if batch scheduling list is empty, select k jobs (batch size) accroding to fairness
-                #decide the scheduling policy using rules
-                #if batch scheduling list is not empty, scheduling the job one by one according decided rule
-                '''applications = self._rootQueue.getAllAppSchedulables()
-                if len(self._jobsScheduledInBatch) == 0:
-                    fairPolicyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
-                    applications.sort(fairPolicyCmp)
-                    self._jobsScheduledInBatch = applications[0: min(len(applications), self._batchSize)]'''
+                        
+                        if not assignedContainer:
+                            break
+                    else:
+                        applications = self._rootQueue.getAllAppSchedulables()
+                        if len(applications) > 0:
+                            index = randint(0, len(applications) - 1)
+                            app = applications[index]
+                            assignedResource = app.assignContainer(node)
+                            if Resources.greaterAtLeastOne(assignedResource, Resources.none()):
+                                assignedContainer = True
+                        
+                        if not assignedContainer:
+                            break
+                elif self._schedulingMode == "batch":
+                    #batch scheduling, if batch scheduling list is empty, select k jobs (batch size) accroding to fairness
+                    #decide the scheduling policy using rules
+                    #if batch scheduling list is not empty, scheduling the job one by one according decided rule
+                    applications = self._rootQueue.getAllAppSchedulables()
+                    if len(self._jobsScheduledInBatch) == 0:
+                        fairPolicyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
+                        applications.sort(fairPolicyCmp)
+                        self._jobsScheduledInBatch = applications[0: min(len(applications), self._batchSize)]
+                    else:
+                        pass
                
                
                 
