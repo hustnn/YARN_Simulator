@@ -59,3 +59,7 @@ class Resource(object):
     def getNetwork(self):
         return self._network
     
+    
+    def getResourceVector(self):
+        return [self._memory, self._cpu, self._disk, self._network]
+    

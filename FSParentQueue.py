@@ -101,7 +101,7 @@ class FSParentQueue(FSQueue):
     def getAllAppSchedulables(self):
         apps = []
         for child in self._childQueues:
-            childApps = child.getAppSchedulables()
+            childApps = child.getAllAppSchedulables()
             apps.extend(childApps)
             
         return apps

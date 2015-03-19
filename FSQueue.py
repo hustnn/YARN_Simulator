@@ -59,3 +59,8 @@ class FSQueue(Schedulable):
     @abc.abstractmethod
     def getChildQueues(self):
         return
+    
+    
+    @abc.abstractmethod
+    def getAllAppSchedulables(self):
+        return

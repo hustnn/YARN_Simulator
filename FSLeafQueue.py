@@ -135,3 +135,7 @@ class FSLeafQueue(FSQueue):
                 break'''
             
         return assigned
+    
+    
+    def getAllAppSchedulables(self):
+        return self._appScheds

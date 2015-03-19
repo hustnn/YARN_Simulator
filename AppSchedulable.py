@@ -29,6 +29,15 @@ class AppSchedulable(Schedulable):
         self._startTime = scheduler.getCurrentTime()
         self._demand = Resources.createResource(0, 0, 0, 0)
         self._multipleResourceFitness = -1.0
+        self._blockCount = 0
+        
+        
+    def getBlockCount(self):
+        return self._blockCount
+    
+    
+    def setBlockCount(self, blockCount):
+        self._blockCount = blockCount
         
         
     def getApp(self):
@@ -162,7 +171,7 @@ class AppSchedulable(Schedulable):
             otherRequests = [task for task in tasks if task not in localRequests and task not in anyRequests]
             if len(otherRequests) > 0:
                 return self.assignContainerToTask(node, priority, otherRequests[0], reserved)
-            
+        
         return Resources.none()
     
     
@@ -236,3 +245,13 @@ class AppSchedulable(Schedulable):
                 break
             
         self._multipleResourceFitness = fitness
+        
+        
+    def getCurrentResourceDemand(self):
+        prioritiesToTry = self._app.getPriorities()
+        for priority in prioritiesToTry:
+            tasks = self._app.getResourceRequests(priority)
+            if (len(tasks) > 0):
+                return tasks[0].getResource()
+        
+        return Resources.none()

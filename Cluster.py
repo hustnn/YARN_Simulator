@@ -42,3 +42,7 @@ class Cluster(object):
     
     def getAllNodes(self):
         return self._nodeList
+    
+    
+    def getClusterSize(self):
+        return len(self._nodeList)

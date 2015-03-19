@@ -11,6 +11,7 @@ from FSSchedulerApp import FSSchedulerApp
 from Resources import Resources
 from SchedulableStatus import SchedulableStatus
 from SimilarityType import SimilarityType
+from Utility import Utility
 
 import sys
 import math
@@ -22,7 +23,8 @@ class YARNScheduler(object):
     '''
 
 
-    def __init__(self, cluster, consideringIO = True, tradeoff = 1.0, similarityType = SimilarityType.PRODUCT, schedulingMode = "default", randomFactor = 0, batchSize = 1, entropy = 1.0):
+    def __init__(self, cluster, consideringIO = True, tradeoff = 1.0, similarityType = SimilarityType.PRODUCT, schedulingMode = "default", 
+                 randomFactor = 0, batchSize = 20, vectorQuantinationNum = 20, entropy = 0.0):
         '''
         Constructor
         '''
@@ -30,6 +32,7 @@ class YARNScheduler(object):
         self._clusterCapacity = Resources.createResource(0, 0, 0, 0)
         self.initClusterCapacity()
         self._consideringIO = consideringIO
+        # all queues are based on root, root use fair policy and can not be changed
         self._rootQueue = FSParentQueue("root", None, self)
         self._rootQueue.setPolicy(PolicyParser.getInstance("fair", self._clusterCapacity))
         self._queues = {"root": self._rootQueue}
@@ -45,9 +48,13 @@ class YARNScheduler(object):
         self._schedulingMode = schedulingMode
         self._randomFactor = randomFactor
         self._batchSize = batchSize
-        self._jobsScheduledInBatch = []
+        self._vectorQuantinationNum = vectorQuantinationNum
         self._entropyThreshold = entropy
+        self._appsScheduledInCurBatch = []
+        self._appsScheduledInLastBatch = []
         self._batchPolicy = "fair"
+        self._batchPolicyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
+        self._feedbackWaitThreshold = cluster.getClusterSize()
         
         
     def initClusterCapacity(self):
@@ -161,9 +168,10 @@ class YARNScheduler(object):
                     if not assignedContainer:
                         break
                 elif self._schedulingMode == "random":
-                    # random scheduling
+                    # random seed generator
                     seed = randint(0, 99)
                     if self._randomFactor < seed:
+                        # use default scheduling
                         assignedResource = self._rootQueue.assignContainer(node)
                         if Resources.greaterAtLeastOne(assignedResource, Resources.none()):
                             assignedContainer = True
@@ -171,6 +179,7 @@ class YARNScheduler(object):
                         if not assignedContainer:
                             break
                     else:
+                        # use random scheduling
                         applications = self._rootQueue.getAllAppSchedulables()
                         if len(applications) > 0:
                             index = randint(0, len(applications) - 1)
@@ -185,15 +194,52 @@ class YARNScheduler(object):
                     #batch scheduling, if batch scheduling list is empty, select k jobs (batch size) accroding to fairness
                     #decide the scheduling policy using rules
                     #if batch scheduling list is not empty, scheduling the job one by one according decided rule
-                    applications = self._rootQueue.getAllAppSchedulables()
-                    if len(self._jobsScheduledInBatch) == 0:
+                    if len(self._appsScheduledInCurBatch) == 0:
+                        # feedback from last batch
+                        waitingSign = False
+                        for app in self._appsScheduledInLastBatch:
+                            if app.getBlockCount() >= self._feedbackWaitThreshold:
+                                waitingSign = True
+                                break
+                            
+                        for app in self._appsScheduledInLastBatch:
+                            app.setBlockCount(0)
+                        self._appsScheduledInLastBatch = []
+                        
+                        # adjust entropy threshold according to the waiting sign and policy used in last batch
+                        
+                        applications = self._rootQueue.getAllAppSchedulables()
                         fairPolicyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
                         applications.sort(fairPolicyCmp)
-                        self._jobsScheduledInBatch = applications[0: min(len(applications), self._batchSize)]
-                    else:
-                        pass
-               
-               
+                        self._appsScheduledInCurBatch = applications[0: min(len(applications), self._batchSize)]
+                        # decide scheduling policy for this batch
+                        entropy = Utility.calEntropyOfWorkload(self._appsScheduledInCurBatch, self._vectorQuantinationNum)
+                        if entropy > self._entropyThreshold:
+                            self._batchPolicy = "perf"
+                            self._batchPolicyCmp = PolicyParser.getInstance("MRF", self._clusterCapacity).getComparator()
+                        else:
+                            self._batchPolicy = "fair"
+                            self._batchPolicyCmp = fairPolicyCmp
+                    
+                    if len(self._appsScheduledInCurBatch) > 0:
+                        # this batch ends until all jobs are scheduled for one time
+                        self._appsScheduledInCurBatch.sort(self._batchPolicyCmp)
+                        app = self._appsScheduledInCurBatch[0]
+                        assignedResource = app.assignContainer(node)
+                        if Resources.greaterAtLeastOne(assignedResource, Resources.none()):
+                            assignedContainer = True
+                            self._appsScheduledInCurBatch.remove(app)
+                            self._appsScheduledInLastBatch.append(app)
+                        elif Resources.equals(assignedResource, Resources.none()):
+                            # already finished, but the state has not been updated in time
+                            self._appsScheduledInCurBatch.remove(app)
+                            self._appsScheduledInLastBatch.append(app)
+                        elif Resources.equals(assignedResource, Resources.notFit()):
+                            # can not fit
+                            app.setBlockCount(app.getBlockCount() + 1)
+                    
+                    if not assignedContainer:
+                        break
                 
         
     def submitJob(self, job, queueName):

@@ -35,14 +35,16 @@ def getFairnessStatistic(currentResult, baselineResult):
     return overallFairness, unfairness, relativeAppFairness
             
 # tradeoff factor = 1 means fair
-def execSimulation(workloadFile, tradeoffFactor, clusterSize = 10, load = 0.0, similarityType = SimilarityType.PRODUCT, schedulingMode = "default", randomFactor = 0):
+def execSimulation(workloadFile, tradeoffFactor, clusterSize = 10, load = 0.0, similarityType = SimilarityType.PRODUCT, schedulingMode = "default", 
+                   randomFactor = 0, batchSize = 20, vectorQuantinationNum = 20, entropy = 0.0):
     cluster = Cluster(clusterSize, load)
     fileList = [{"name": "wiki-40G", "size": Configuration.BLOCK_SIZE * 4 * 10}]
     for f in fileList:
         hadoopFile = File(f["name"], f["size"])
         cluster.uploadFile(hadoopFile)
         
-    scheduler = YARNScheduler(cluster, True, tradeoffFactor, similarityType, schedulingMode, randomFactor)
+    scheduler = YARNScheduler(cluster, True, tradeoffFactor, similarityType, schedulingMode, 
+                              randomFactor, batchSize, vectorQuantinationNum, entropy)
     
     scheduler.createQueue("queue1", "MULTIFAIR", True, "root")
     
@@ -637,11 +639,11 @@ if __name__ == '__main__':
     overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
     print(str(fairMakespan) + "," + str(perfMakespan) + "," + str(float(perfMakespan) / fairMakespan) + "," + str(-1 * unfairness))'''
     
-    workload = "finding1"
+    '''workload = "finding1"
     fairMakespan, fairFinishedApp = execSimulation(workload, 1)
     randMakespan, randFinishedApp = execSimulation(workload, 1, 10, 0.0, SimilarityType.PRODUCT, "random", 100)
     overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(randFinishedApp, fairFinishedApp)
-    print(str(fairMakespan) + "," + str(randMakespan) + "," + str(-1 * unfairness))
+    print(str(fairMakespan) + "," + str(randMakespan) + "," + str(-1 * unfairness))'''
     
     '''workload = "finding1-random"
     fairMakespan, fairFinishedApp = execSimulation(workload, 1)
@@ -717,3 +719,18 @@ if __name__ == '__main__':
         overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
         print(str(index + 1) + "," + str(fairMakespan) + "," + str(perfMakespan) + "," + str(-1 * unfairness))
     print("\n")'''
+    
+    
+    '''execSimulation(workloadFile, tradeoffFactor, clusterSize = 10, load = 0.0, similarityType = SimilarityType.PRODUCT, schedulingMode = "default", 
+                   randomFactor = 0, batchSize = 20, vectorQuantinationNum = 20, entropy = 2.0):'''
+    # experiments of ICPP paper
+    workload = "finding1"
+    '''fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+    print(str(fairMakespan))
+    perfMakespan, perfFinishedApp = execSimulation(workload, 0)
+    print(str(perfMakespan))'''
+    batchMakespan, batchFinishedApp = execSimulation(workload, 0, 10, 0.0, SimilarityType.PRODUCT, "batch", 0, 20, 20, 0.5)
+    print(str(batchMakespan))
+    #print(str(fairMakespan) + "," + str(perfMakespan) + "," + str(batchMakespan))
+    #overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+    #print(str(fairMakespan) + "," + str(perfMakespan) + "," + str(float(perfMakespan) / fairMakespan) + "," + str(-1 * unfairness))
