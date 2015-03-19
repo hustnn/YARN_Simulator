@@ -10,7 +10,8 @@ import math
 def calEntropy(probDict):
     sum = 0
     for p in probDict.values(): 
-        sum += p * math.log(float(1) / p) / math.log(2)
+        if p > 0:
+            sum += p * math.log(float(1) / p) / math.log(2)
         
     return sum
 
@@ -60,7 +61,7 @@ if __name__ == '__main__':
         probDis[k] = float(v) / totalCount
     print(calEntropy(probDis))
     
-    dis1 = {"a": 0.5, "b": 0.3, "c": 0.2} # less random, smaller entropy
-    dis2 = {"a": 0.1, "b": 0.1, "c": 0.1, "d": 0.1, "e": 0.1, "f": 0.1, "g": 0.1, "h": 0.1, "i": 0.1, "j": 0.1} # more random, larger entropy
+    dis1 = {"a": 0.33, "b": 0.33, "c": 0.34} # less random, smaller entropy, indicates small optimization space
+    dis2 = {"a": 0.1, "b": 0.1, "c": 0.1, "d": 0.1, "e": 0.1, "f": 0.1, "g": 0.1, "h": 0.1, "i": 0.1, "j": 0.1} # more random, larger entropy, indicates large optimization space
     print(calEntropy(dis1), calEntropy(dis2))
         
