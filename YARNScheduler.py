@@ -52,7 +52,7 @@ class YARNScheduler(object):
         self._entropyThreshold = entropy
         self._appsScheduledInCurBatch = []
         self._appsScheduledInLastBatch = []
-        self._batchPolicy = "fair"
+        self._batchPolicy = "perf"
         self._batchPolicyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
         self._feedbackWaitThreshold = cluster.getClusterSize()
         
@@ -207,6 +207,15 @@ class YARNScheduler(object):
                         self._appsScheduledInLastBatch = []
                         
                         # adjust entropy threshold according to the waiting sign and policy used in last batch
+                        if waitingSign == False:
+                            self._entropyThreshold -= 0.2
+                        else:
+                            self._entropyThreshold += 0.2
+                            '''if self._batchPolicy == "perf":
+                                self._entropyThreshold += 0.2
+                            else:
+                                self._entropyThreshold -= 0.2'''
+                        print(waitingSign, self._batchPolicy, self._entropyThreshold)
                         
                         applications = self._rootQueue.getAllAppSchedulables()
                         fairPolicyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
@@ -214,18 +223,21 @@ class YARNScheduler(object):
                         self._appsScheduledInCurBatch = applications[0: min(len(applications), self._batchSize)]
                         # decide scheduling policy for this batch
                         entropy = Utility.calEntropyOfWorkload(self._appsScheduledInCurBatch, self._vectorQuantinationNum)
+                        
                         if entropy > self._entropyThreshold:
                             self._batchPolicy = "perf"
                             self._batchPolicyCmp = PolicyParser.getInstance("MRF", self._clusterCapacity).getComparator()
                         else:
                             self._batchPolicy = "fair"
                             self._batchPolicyCmp = fairPolicyCmp
+                        #print("entropy: " + str(entropy) + ", " + "policy: " + self._batchPolicy)
                     
                     if len(self._appsScheduledInCurBatch) > 0:
                         # this batch ends until all jobs are scheduled for one time
                         self._appsScheduledInCurBatch.sort(self._batchPolicyCmp)
                         app = self._appsScheduledInCurBatch[0]
                         assignedResource = app.assignContainer(node)
+                        #print("app: " + app.getApp().getApplicationID() + ", assigned: " + str(assignedResource) + ", node: " + str(node) + ", fitness: " + str(app.getMultiResFitness()))
                         if Resources.greaterAtLeastOne(assignedResource, Resources.none()):
                             assignedContainer = True
                             self._appsScheduledInCurBatch.remove(app)

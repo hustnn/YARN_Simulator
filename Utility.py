@@ -56,6 +56,7 @@ class Utility(object):
         resVectorArray = numpy.asarray(resVectorList)
         r, d = kmeans(resVectorArray, vectorQuantinationNum, 1000)
         (code, distor) = vq(resVectorArray, r)
+        #print(code)
         distributions = {}
         for n in code:
             if n in distributions.keys():

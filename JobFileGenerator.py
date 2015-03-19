@@ -696,11 +696,59 @@ def genDominantResourceCombinationVaryingBoth(numOfJobs, numOfTasks, taskExecTim
                 f.write(job + "\n")
             f.close()
             
+            
+def genJob(jobType, numOfTasks, memory, cpu, disk, network, taskExecTime):
+    jobInfo = [jobType, str(numOfTasks), str(memory), str(cpu), str(disk), str(network), str(taskExecTime)]
+    return ",".join(jobInfo)
+
+def addTime(job, t):
+    return job + "," + str(t)
+
+
+def genMicroWorkload(filename):
+    nonDominant = genJob("compute", 10, 2048, 1, 20, 10, 5)
+    memoryDominant = genJob("compute", 10, 12288, 1, 20, 10, 5)
+    cpuDominant = genJob("compute", 10, 2048, 6, 20, 10, 5)
+    diskDominant = genJob("compute", 10, 2048, 1, 128, 10, 5)
+    networkDominant = genJob("compute", 10, 2048, 1, 20, 64, 5)
     
+    jobList = []
+    
+    for i in range(30):
+        job = addTime(nonDominant, 0)
+        jobList.append(job)
+        
+    for i in range(30):
+        job = addTime(memoryDominant, 0)
+        jobList.append(job)
+        
+        
+    for i in range(10):
+        job = addTime(memoryDominant, 60)
+        jobList.append(job)
+        
+    for i in range(10):
+        job = addTime(cpuDominant, 60)
+        jobList.append(job)
+        
+    for i in range(10):
+        job = addTime(diskDominant, 60)
+        jobList.append(job)
+        
+    for i in range(10):
+        job = addTime(networkDominant, 60)
+        jobList.append(job)
+        
+    f = open(Configuration.WORKLOAD_PATH + filename, "w")
+    for job in jobList:
+        f.write(job + "\n")
+    f.close()
 
 if __name__ == '__main__':
+    
+    genMicroWorkload("micro-workload")
     #basic
-    genAllSameOrMixedCombination(24, 10, 5)
+    '''genAllSameOrMixedCombination(24, 10, 5)
     genResourceTypeCombination(24, 10, 5)
     genDominantResourceCombination(24, 10, 5)
     
@@ -732,5 +780,5 @@ if __name__ == '__main__':
     #dominant resource combination
     genDominantResourceCombinationVaryingL(24, 10, 5)
     genDominantResourceCombinationVaryingS(24, 10, 5)
-    genDominantResourceCombinationVaryingBoth(24, 10, 5)
+    genDominantResourceCombinationVaryingBoth(24, 10, 5)'''
     

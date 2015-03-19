@@ -724,13 +724,29 @@ if __name__ == '__main__':
     '''execSimulation(workloadFile, tradeoffFactor, clusterSize = 10, load = 0.0, similarityType = SimilarityType.PRODUCT, schedulingMode = "default", 
                    randomFactor = 0, batchSize = 20, vectorQuantinationNum = 20, entropy = 2.0):'''
     # experiments of ICPP paper
-    workload = "finding1"
-    '''fairMakespan, fairFinishedApp = execSimulation(workload, 1)
-    print(str(fairMakespan))
+    workload = "micro-workload"
+    print("fair begin")
+    fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+    print("fair: " + str(fairMakespan))
+    
     perfMakespan, perfFinishedApp = execSimulation(workload, 0)
-    print(str(perfMakespan))'''
-    batchMakespan, batchFinishedApp = execSimulation(workload, 0, 10, 0.0, SimilarityType.PRODUCT, "batch", 0, 20, 20, 0.5)
-    print(str(batchMakespan))
-    #print(str(fairMakespan) + "," + str(perfMakespan) + "," + str(batchMakespan))
-    #overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
-    #print(str(fairMakespan) + "," + str(perfMakespan) + "," + str(float(perfMakespan) / fairMakespan) + "," + str(-1 * unfairness))
+    overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+    print("perf: " + str(perfMakespan) + ", " + str(unfairness))
+    
+    '''print("batch size study")
+    for batchSize in [10, 30, 50]:
+        batchMakespan, batchFinishedApp = execSimulation(workload, 0, 10, 0.0, SimilarityType.PRODUCT, "batch", 0, batchSize, 10, 1.5)
+        overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(batchFinishedApp, fairFinishedApp)
+        print("batch size: " + str(batchSize) + ", " + str(batchMakespan) + ", " + str(unfairness))'''
+    
+    '''print("vector quantination num study")
+    for vqNum in [5, 10, 15, 20]:
+        batchMakespan, batchFinishedApp = execSimulation(workload, 0, 10, 0.0, SimilarityType.PRODUCT, "batch", 0, 30, vqNum, 1.5)
+        overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(batchFinishedApp, fairFinishedApp)
+        print("vq num: " + str(vqNum) + ", " + str(batchMakespan) + ", " + str(unfairness))'''
+        
+    print("entropy threshold study")
+    for entropy in [1]:
+        batchMakespan, batchFinishedApp = execSimulation(workload, 0, 10, 0.0, SimilarityType.PRODUCT, "batch", 0, 30, 10, entropy)
+        overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(batchFinishedApp, fairFinishedApp)
+        print("entropy: " + str(entropy) + ", " + str(batchMakespan) + ", " + str(unfairness))

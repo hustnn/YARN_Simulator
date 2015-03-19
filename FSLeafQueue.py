@@ -112,7 +112,7 @@ class FSLeafQueue(FSQueue):
         for app in selectedApps:
             assigned = app.assignContainer(node)
             if not Resources.equals(assigned, Resources.none()):
-                #print("app: " + app.getApp().getApplicationID() + ", assigned: " + str(assigned) + ", node: " + str(node))
+                #print("app: " + app.getApp().getApplicationID() + ", assigned: " + str(assigned) + ", node: " + str(node) + ", fitness: " + str(app.getMultiResFitness()))
                 break 
             
         if Resources.equals(assigned, Resources.none()):
