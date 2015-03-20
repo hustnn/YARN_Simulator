@@ -71,6 +71,26 @@ class Utility(object):
         return cls.calEntropy(probDis)
     
     
+    @classmethod
+    def calEntropyOfVectorList(cls, vectorList, vectorQuantinationNum = 5):    
+        resVectorArray = numpy.asarray(vectorList)
+        r, d = kmeans(resVectorArray, vectorQuantinationNum, 1000)
+        (code, distor) = vq(resVectorArray, r)
+        #print(code)
+        distributions = {}
+        for n in code:
+            if n in distributions.keys():
+                distributions[n] = distributions[n] + 1
+            else:
+                distributions[n] = 1
+        totalCount = len(code)
+        probDis = {}
+        for k, v in distributions.items():
+            probDis[k] = float(v) / totalCount
+        
+        return cls.calEntropy(probDis)
+    
+    
     @staticmethod
     def calEntropy(probDict):
         sum = 0

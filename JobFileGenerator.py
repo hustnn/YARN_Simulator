@@ -6,6 +6,8 @@ Created on Jan 30, 2015
 
 import Configuration
 
+from Utility import Utility
+
 MEMORY_LIST = [2048, 4096, 6144, 8192, 10240, 12288, 14336, 16384, 18432, 20480, 22528, 24576]
 CPU_LIST = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 DISK_LIST = [20, 40, 60, 80, 100, 128, 148, 168, 188, 208, 228, 256]
@@ -714,16 +716,72 @@ def genMicroWorkload(filename):
     
     jobList = []
     
-    for i in range(30):
+    '''for i in range(40):
         job = addTime(nonDominant, 0)
         jobList.append(job)
         
-    for i in range(30):
+    for i in range(20):
+        job = addTime(memoryDominant, 0)
+        jobList.append(job)'''
+        
+    for i in range(40):
+        job = addTime(nonDominant, 0)
+        jobList.append(job)
+        
+    for i in range(20):
+        job = addTime(cpuDominant, 0)
+        jobList.append(job)
+        
+    '''for i in range(40):
+        job = addTime(nonDominant, 0)
+        jobList.append(job)
+        
+    for i in range(20):
         job = addTime(memoryDominant, 0)
         jobList.append(job)
         
+    for i in range(40):
+        job = addTime(nonDominant, 0)
+        jobList.append(job)
+        
+    for i in range(20):
+        job = addTime(memoryDominant, 0)
+        jobList.append(job)'''
+    
+    '''for i in range(10):
+        job = addTime(memoryDominant, 0)
+        jobList.append(job)
         
     for i in range(10):
+        job = addTime(cpuDominant, 0)
+        jobList.append(job)
+        
+    for i in range(10):
+        job = addTime(diskDominant, 0)
+        jobList.append(job)
+        
+    for i in range(10):
+        job = addTime(networkDominant, 0)
+        jobList.append(job)
+        
+    for i in range(10):
+        job = addTime(memoryDominant, 0)
+        jobList.append(job)
+        
+    for i in range(10):
+        job = addTime(cpuDominant, 0)
+        jobList.append(job)
+        
+    for i in range(10):
+        job = addTime(diskDominant, 0)
+        jobList.append(job)
+        
+    for i in range(10):
+        job = addTime(networkDominant, 0)
+        jobList.append(job)'''
+        
+        
+    '''for i in range(10):
         job = addTime(memoryDominant, 60)
         jobList.append(job)
         
@@ -739,14 +797,64 @@ def genMicroWorkload(filename):
         job = addTime(networkDominant, 60)
         jobList.append(job)
         
+    for i in range(10):
+        job = addTime(memoryDominant, 60)
+        jobList.append(job)
+        
+    for i in range(10):
+        job = addTime(cpuDominant, 60)
+        jobList.append(job)
+        
+    for i in range(10):
+        job = addTime(diskDominant, 60)
+        jobList.append(job)
+        
+    for i in range(10):
+        job = addTime(networkDominant, 60)
+        jobList.append(job)'''
+        
+    
+        
     f = open(Configuration.WORKLOAD_PATH + filename, "w")
     for job in jobList:
         f.write(job + "\n")
     f.close()
+    
+    
+def genDiffEntropy():
+    count = 24
+    memoryIntensive = "compute,10,12288,1,20,10,5,0"
+    memoryVector = [12288, 1, 20, 10]
+    cpuIntensive = "compute,10,2048,6,20,10,5,0"
+    cpuVector = [2048, 6,  20, 10]
+    diskIntensive = "compute,10,2048,1,128,10,5,0"
+    diskVector = [2048, 1, 128, 10]
+    netIntensive = "compute,10,2048,1,20,64,5,0"
+    netVector = [2048, 1, 20, 64]
+    
+    a1 = [memoryIntensive] * 24
+    v1 = [memoryVector] * 24
+    
+    a2 = [cpuIntensive] * 24
+    v2 = [memoryVector] * 18 + [cpuVector] * 6
+    
+    a3 = [diskIntensive] * 24
+    v3 = [memoryVector] * 17 + [cpuVector] * 5 + [diskVector] * 2
+    
+    a4 = [netIntensive] * 24
+    v4 = [memoryVector] * 8 + [cpuVector] * 6 + [diskVector] * 6 + [netVector] * 2
+    
+    print(Utility.calEntropyOfVectorList(v1))
+    print(Utility.calEntropyOfVectorList(v2))
+    print(Utility.calEntropyOfVectorList(v3))
+    print(Utility.calEntropyOfVectorList(v4))
 
 if __name__ == '__main__':
     
-    genMicroWorkload("micro-workload")
+    #genMicroWorkload("micro-workload")
+    
+    genDiffEntropy()
+    
     #basic
     '''genAllSameOrMixedCombination(24, 10, 5)
     genResourceTypeCombination(24, 10, 5)

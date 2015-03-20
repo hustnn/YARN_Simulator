@@ -50,12 +50,23 @@ class YARNScheduler(object):
         self._batchSize = batchSize
         self._vectorQuantinationNum = vectorQuantinationNum
         self._entropyThreshold = entropy
+        self._entropyOfLastBatch = 0
         self._appsScheduledInCurBatch = []
         self._appsScheduledInLastBatch = []
-        self._batchPolicy = "perf"
+        self._batchPolicy = "fair"
         self._batchPolicyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
         self._feedbackWaitThreshold = cluster.getClusterSize()
         
+        #cluster utilization
+        self._memory = []
+        self._cpu = []
+        self._disk = []
+        self._network = []
+        
+        
+    def getUtilization(self):
+        return self._memory, self._cpu, self._disk, self._network
+    
         
     def initClusterCapacity(self):
         for node in self._cluster.getAllNodes():
@@ -207,15 +218,24 @@ class YARNScheduler(object):
                         self._appsScheduledInLastBatch = []
                         
                         # adjust entropy threshold according to the waiting sign and policy used in last batch
-                        if waitingSign == False:
+                        '''if waitingSign == False:
                             self._entropyThreshold -= 0.2
                         else:
                             self._entropyThreshold += 0.2
-                            '''if self._batchPolicy == "perf":
+                            if self._batchPolicy == "perf":
                                 self._entropyThreshold += 0.2
                             else:
                                 self._entropyThreshold -= 0.2'''
-                        print(waitingSign, self._batchPolicy, self._entropyThreshold)
+                        
+                        '''if self._entropyOfLastBatch < self._entropyThreshold:
+                            self._batchSize -= 10
+                        else:
+                            self._batchSize += 10
+                            
+                        if self._batchSize < 1:
+                            self._batchSize = 1'''
+                        
+                        #print(self._currentTime, waitingSign, self._batchPolicy, self._entropyThreshold, entropy)
                         
                         applications = self._rootQueue.getAllAppSchedulables()
                         fairPolicyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
@@ -223,17 +243,21 @@ class YARNScheduler(object):
                         self._appsScheduledInCurBatch = applications[0: min(len(applications), self._batchSize)]
                         # decide scheduling policy for this batch
                         entropy = Utility.calEntropyOfWorkload(self._appsScheduledInCurBatch, self._vectorQuantinationNum)
+                        self._entropyOfLastBatch = entropy
                         
                         if entropy > self._entropyThreshold:
                             self._batchPolicy = "perf"
                             self._batchPolicyCmp = PolicyParser.getInstance("MRF", self._clusterCapacity).getComparator()
                         else:
                             self._batchPolicy = "fair"
-                            self._batchPolicyCmp = fairPolicyCmp
+                            self._batchPolicyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
                         #print("entropy: " + str(entropy) + ", " + "policy: " + self._batchPolicy)
+                        
+                        #print(self._currentTime, waitingSign, self._batchPolicy, self._entropyThreshold, entropy)
                     
                     if len(self._appsScheduledInCurBatch) > 0:
                         # this batch ends until all jobs are scheduled for one time
+                        self._appsScheduledInCurBatch.sort(PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator())
                         self._appsScheduledInCurBatch.sort(self._batchPolicyCmp)
                         app = self._appsScheduledInCurBatch[0]
                         assignedResource = app.assignContainer(node)
@@ -353,7 +377,32 @@ class YARNScheduler(object):
             print(node.getNodeID())
             for container in node.getRunningContainers():
                 print(container.getTask().getTaskID())'''
-                    
+        
+        totalMemory = 0
+        totalCPU = 0
+        totalDisk = 0
+        totalNetwork = 0
+        memory = 0
+        cpu = 0
+        disk = 0
+        network = 0
+        for node in self._cluster.getAllNodes():
+            total = node.getCapacity()
+            used = node.getUsedResource()
+            totalMemory += total.getMemory()
+            totalCPU += total.getCPU()
+            totalDisk += total.getDisk()
+            totalNetwork += total.getNetwork()
+            memory += used.getMemory()
+            cpu += used.getCPU()
+            disk += used.getDisk()
+            network += used.getNetwork()
+            
+        self._memory.append(float(memory) / totalMemory)
+        self._cpu.append(float(cpu) / totalCPU)
+        self._disk.append(float(disk) / totalDisk)
+        self._network.append(float(network) / totalNetwork)
+        
         self.schedule(step)
         self.updateStatusAfterScheduling(step, currentTime)
         

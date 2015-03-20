@@ -85,7 +85,12 @@ def execSimulation(workloadFile, tradeoffFactor, clusterSize = 10, load = 0.0, s
     
     finishedApp = scheduler.getFinishedAppsInfo()
     
+    # resource utilization
+    memory, cpu, disk, network = scheduler.getUtilization()
+    #print(float(sum(memory)) / len(memory), float(sum(cpu)) / len(cpu), float(sum(disk)) / len(disk), float(sum(network)) / len(network))
+    
     return makespan, finishedApp
+
 
 if __name__ == '__main__':
     '''print("all same and mixed combination")
@@ -724,18 +729,18 @@ if __name__ == '__main__':
     '''execSimulation(workloadFile, tradeoffFactor, clusterSize = 10, load = 0.0, similarityType = SimilarityType.PRODUCT, schedulingMode = "default", 
                    randomFactor = 0, batchSize = 20, vectorQuantinationNum = 20, entropy = 2.0):'''
     # experiments of ICPP paper
-    workload = "micro-workload"
+    '''workload = "micro-workload"
     print("fair begin")
     fairMakespan, fairFinishedApp = execSimulation(workload, 1)
     print("fair: " + str(fairMakespan))
     
     perfMakespan, perfFinishedApp = execSimulation(workload, 0)
     overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
-    print("perf: " + str(perfMakespan) + ", " + str(unfairness))
+    print("perf: " + str(perfMakespan) + ", " + str(unfairness))'''
     
     '''print("batch size study")
-    for batchSize in [10, 30, 50]:
-        batchMakespan, batchFinishedApp = execSimulation(workload, 0, 10, 0.0, SimilarityType.PRODUCT, "batch", 0, batchSize, 10, 1.5)
+    for batchSize in [20, 30, 40, 50, 60]:
+        batchMakespan, batchFinishedApp = execSimulation(workload, 0, 10, 0.0, SimilarityType.PRODUCT, "batch", 0, batchSize, 10, 1)
         overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(batchFinishedApp, fairFinishedApp)
         print("batch size: " + str(batchSize) + ", " + str(batchMakespan) + ", " + str(unfairness))'''
     
@@ -745,8 +750,49 @@ if __name__ == '__main__':
         overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(batchFinishedApp, fairFinishedApp)
         print("vq num: " + str(vqNum) + ", " + str(batchMakespan) + ", " + str(unfairness))'''
         
-    print("entropy threshold study")
-    for entropy in [1]:
-        batchMakespan, batchFinishedApp = execSimulation(workload, 0, 10, 0.0, SimilarityType.PRODUCT, "batch", 0, 30, 10, entropy)
+    '''print("entropy threshold study")
+    for entropy in [1.0]:
+        batchMakespan, batchFinishedApp = execSimulation(workload, 0, 10, 0.0, SimilarityType.PRODUCT, "batch", 0, 40, 10, entropy)
         overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(batchFinishedApp, fairFinishedApp)
-        print("entropy: " + str(entropy) + ", " + str(batchMakespan) + ", " + str(unfairness))
+        print("entropy: " + str(entropy) + ", " + str(batchMakespan) + ", " + str(unfairness))'''
+        
+        
+    '''workload = "memory"
+    fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+    print("fair: " + str(fairMakespan))
+    
+    perfMakespan, perfFinishedApp = execSimulation(workload, 0)
+    overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+    print("perf: " + str(perfMakespan) + ", " + str(unfairness))
+    
+    workload = "memorycpu"
+    fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+    print("fair: " + str(fairMakespan))
+    
+    perfMakespan, perfFinishedApp = execSimulation(workload, 0)
+    overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+    print("perf: " + str(perfMakespan) + ", " + str(unfairness))
+    
+    workload = "memorycpudisk"
+    fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+    print("fair: " + str(fairMakespan))
+    
+    perfMakespan, perfFinishedApp = execSimulation(workload, 0)
+    overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+    print("perf: " + str(perfMakespan) + ", " + str(unfairness))
+    
+    workload = "memorycpudisknetwork"
+    fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+    print("fair: " + str(fairMakespan))
+    
+    perfMakespan, perfFinishedApp = execSimulation(workload, 0)
+    overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+    print("perf: " + str(perfMakespan) + ", " + str(unfairness))'''
+    
+    workload = "memorycpudiskskew1"
+    fairMakespan, fairFinishedApp = execSimulation(workload, 1)
+    print("fair: " + str(fairMakespan))
+    
+    perfMakespan, perfFinishedApp = execSimulation(workload, 0)
+    overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
+    print("perf: " + str(perfMakespan) + ", " + str(unfairness))
