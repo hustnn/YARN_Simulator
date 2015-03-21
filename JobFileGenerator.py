@@ -848,12 +848,31 @@ def genDiffEntropy():
     print(Utility.calEntropyOfVectorList(v2))
     print(Utility.calEntropyOfVectorList(v3))
     print(Utility.calEntropyOfVectorList(v4))
+    
+    
+def computeOverhead():
+    memoryVector = [12288, 1, 20, 10]
+    cpuVector = [2048, 6,  20, 10]
+    diskVector = [2048, 1, 128, 10]
+    netVector = [2048, 1, 20, 64]
+    count = 25
+    
+    import datetime
+    
+    for i in [1, 10, 100, 500]:
+        c = count * i
+        v = [memoryVector] * c + [cpuVector] * c + [diskVector] * c + [netVector] * c
+        print(datetime.datetime.now().time())
+        print(Utility.calEntropyOfVectorList(v))
+        print(datetime.datetime.now().time())
 
 if __name__ == '__main__':
     
     #genMicroWorkload("micro-workload")
     
-    genDiffEntropy()
+    #genDiffEntropy()
+    
+    computeOverhead()
     
     #basic
     '''genAllSameOrMixedCombination(24, 10, 5)
