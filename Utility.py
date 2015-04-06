@@ -72,7 +72,7 @@ class Utility(object):
     
     
     @classmethod
-    def calEntropyOfVectorList(cls, vectorList, vectorQuantinationNum = 5):    
+    def calEntropyOfVectorList(cls, vectorList, vectorQuantinationNum = 4):    
         resVectorArray = numpy.asarray(vectorList)
         r, d = kmeans(resVectorArray, vectorQuantinationNum, 1000)
         (code, distor) = vq(resVectorArray, r)

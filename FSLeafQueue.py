@@ -100,6 +100,9 @@ class FSLeafQueue(FSQueue):
         # thitd, sort selected list by fitness
         multiResFitnessComparator = PolicyParser.getInstance("MRF", self._scheduler.getClusterCapacity()).getComparator()
         selectedApps.sort(multiResFitnessComparator)
+        '''for app in selectedApps:
+            print(app.getApp().getApplicationID())
+        print("\n")'''
         
         #print("sort by fitness")
         #for app in selectedApps:

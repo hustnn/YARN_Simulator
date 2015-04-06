@@ -8,6 +8,14 @@ import Configuration
 
 from Utility import Utility
 
+from numpy import *
+from pylab import *
+from matplotlib import rc, rcParams
+# Pyplot is a module within the matplotlib library for plotting
+import matplotlib.pyplot as plt
+import copy
+import sys
+
 MEMORY_LIST = [2048, 4096, 6144, 8192, 10240, 12288, 14336, 16384, 18432, 20480, 22528, 24576]
 CPU_LIST = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 DISK_LIST = [20, 40, 60, 80, 100, 128, 148, 168, 188, 208, 228, 256]
@@ -839,7 +847,7 @@ def genDiffEntropy():
     v2 = [memoryVector] * 18 + [cpuVector] * 6
     
     a3 = [diskIntensive] * 24
-    v3 = [memoryVector] * 17 + [cpuVector] * 5 + [diskVector] * 2
+    v3 = [memoryVector] * 8 + [cpuVector] * 8 + [diskVector] * 8
     
     a4 = [netIntensive] * 24
     v4 = [memoryVector] * 8 + [cpuVector] * 6 + [diskVector] * 6 + [netVector] * 2
@@ -859,12 +867,23 @@ def computeOverhead():
     
     import datetime
     
-    for i in [1, 10, 100, 500]:
+    for i in [1, 10, 100]:
         c = count * i
         v = [memoryVector] * c + [cpuVector] * c + [diskVector] * c + [netVector] * c
         print(datetime.datetime.now().time())
         print(Utility.calEntropyOfVectorList(v))
         print(datetime.datetime.now().time())
+        
+        
+def fitting():
+    # 
+    x1 = [1, 1.05, 1.28, 1.4284, 1.58, 1.8676, 2] 
+    y1 = [0, 0.09, 0.12, 0.17, 0.25, 0.42, 0.5]
+    y2 = [0.1, 0.1, 0.04, 0.015, 0, 0, 0]
+    
+    coefficients1 = polyfit(x1,y1,3)
+    print coefficients1
+    
 
 if __name__ == '__main__':
     
@@ -872,7 +891,9 @@ if __name__ == '__main__':
     
     #genDiffEntropy()
     
-    computeOverhead()
+    #computeOverhead()
+    
+    fitting()
     
     #basic
     '''genAllSameOrMixedCombination(24, 10, 5)

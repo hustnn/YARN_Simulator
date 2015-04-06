@@ -52,6 +52,8 @@ def execSimulation(workloadFile, tradeoffFactor, clusterSize = 10, load = 0.0, s
     queueWorkloads = {"queue1": workloadFile}
     
     workloadGen = WorkloadGenerator(Configuration.SIMULATION_PATH, Configuration.WORKLOAD_PATH, queueWorkloads, cluster)
+    for queue in workloadGen.getQueues().keys():
+        workloadGen.genWorkload(queue)
     
     '''for k in queueWorkloads.keys():
         v = workloadGen.getQueues()[k]
@@ -789,7 +791,7 @@ if __name__ == '__main__':
     overallFairness, unfairness, relativeAppFairness = getFairnessStatistic(perfFinishedApp, fairFinishedApp)
     print("perf: " + str(perfMakespan) + ", " + str(unfairness))'''
     
-    workload = "memorycpudiskskew1"
+    workload = "memory"
     fairMakespan, fairFinishedApp = execSimulation(workload, 1)
     print("fair: " + str(fairMakespan))
     

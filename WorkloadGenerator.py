@@ -22,8 +22,8 @@ class WorkloadGenerator(object):
         self._queues = {}
         for k, v in queueWorkloadDict.items():
             self._queues[k] = {"traceFile": v, "totalJobs": 0, "submittedJobs": 0, "jobList": []}
-        for queue in self._queues.keys():
-            self.genWorkload(queue)
+        #for queue in self._queues.keys():
+        #    self.genWorkload(queue)
             
             
     def getQueues(self):
@@ -46,13 +46,38 @@ class WorkloadGenerator(object):
                 break
             
         return ret
+    
+    
+    def genWorkloadByScale(self, queue, scale = 1):
+        fileName = self._workloadPath + self._queues[queue]["traceFile"]
+        f = open(fileName, "r")
+        lines = f.readlines()
+        jobCount = 0
+        for line in lines:
+            items = line.split(",")
+            numOfTask = int(items[0])
+            taskExecTime = int(items[1])
+            submissionTime = int(items[2])
+            memory = int(items[3])
+            cpu = int(items[4])
+            disk = int(items[5])
+            network = int(items[6])
+            for i in range(scale):
+                jobID = jobCount + 1
+                jobCount += 1
+                job = JobGenerator.genComputeIntensitveJob(str(jobID), numOfTask, memory, cpu, disk, network, taskExecTime, submissionTime)
+                if job != None:
+                    self._queues[queue]["totalJobs"] += 1
+                    self._queues[queue]["jobList"].append(job)
+            
+        f.close()
             
             
     def genWorkload(self, queue):
         #fileName = self._tracePath + self._queues[queue]["traceFile"]
         fileName = self._workloadPath + self._queues[queue]["traceFile"]
-        file = open(fileName, "r")
-        lines = file.readlines()
+        f = open(fileName, "r")
+        lines = f.readlines()
         job = None
         
         for line in lines:
@@ -98,5 +123,5 @@ class WorkloadGenerator(object):
                 self._queues[queue]["totalJobs"] += 1
                 self._queues[queue]["jobList"].append(job)
             
-            
+        f.close()
         
