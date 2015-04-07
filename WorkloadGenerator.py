@@ -52,6 +52,7 @@ class WorkloadGenerator(object):
         fileName = self._workloadPath + self._queues[queue]["traceFile"]
         f = open(fileName, "r")
         lines = f.readlines()
+        f.close()
         jobCount = 0
         for line in lines:
             items = line.split(",")
@@ -70,8 +71,36 @@ class WorkloadGenerator(object):
                     self._queues[queue]["totalJobs"] += 1
                     self._queues[queue]["jobList"].append(job)
             
+        
+    def genWorkloadByDistribution(self, queue, dist):
+        fileName = self._workloadPath + self._queues[queue]["traceFile"]
+        f = open(fileName, "r")
+        lines = f.readlines()
         f.close()
-            
+        
+        jobCount = 0
+        jobResVector = []
+        for i in range(len(dist)):
+            num = dist[i]
+            for j in range(num):
+                line = lines[i]
+                items = line.split(",")
+                numOfTask = int(items[0])
+                taskExecTime = int(items[1])
+                submissionTime = int(items[2])
+                memory = int(items[3])
+                cpu = int(items[4])
+                disk = int(items[5])
+                network = int(items[6])
+                jobCount += 1 
+                job = JobGenerator.genComputeIntensitveJob(str(jobCount), numOfTask, memory, cpu, disk, network, taskExecTime, submissionTime)
+                jobResVector.append(job.getResourceVector())
+                if job!= None:
+                    self._queues[queue]["totalJobs"] += 1
+                    self._queues[queue]["jobList"].append(job)
+                         
+        return jobResVector
+                    
             
     def genWorkload(self, queue):
         #fileName = self._tracePath + self._queues[queue]["traceFile"]

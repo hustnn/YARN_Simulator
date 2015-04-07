@@ -31,6 +31,10 @@ class Job(object):
         self._taskList.append(task)
         
         
+    def getResourceVector(self):
+        return self._taskList[0].getResource().getResourceVector()
+        
+        
     def getJobID(self):
         return self._jobID
     
@@ -66,7 +70,7 @@ class Job(object):
     def getNumofUnFinishedTasks(self):
         count = 0
         for task in self._taskList:
-            if task.getStatus() != SchedulableStatus.FINISHING:
+            if task.getStatus() == SchedulableStatus.FINISHING:
                 count += 1
         return count
                 
