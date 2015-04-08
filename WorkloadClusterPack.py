@@ -87,20 +87,44 @@ def execSimulation(clusterSize, workloadScale, workloadSet, dist, numEntropy = 4
     
     
 def evaluateEntropy(clusterSize, workloadScale, workloadSet, numEntropy = 4):
-    disList = genCombin(4, workloadScale * 1)
-    res = [[]] * 4
-    for dis in disList:
-        r = execSimulation(clusterSize, workloadScale, workloadSet, dis)
-        index = sum(i > 0 for i in r["dist"]) - 1
-        res[index].append(r)
+    #disList = genCombin(8, workloadScale * 8)
+    disList = genCombin(4, workloadScale * 4)
+    res = []
+    for i in range(4):
+        res.append([])
+    
+    # for accerate
+    '''selectedDisList = []
+    for l in disList:
+        if len([i for i in l if i > 0]) == 1 or len([i for i in l if i > 0]) == 4:
+            selectedDisList.append(l)'''
         
+    for dis in disList:
+        r = execSimulation(clusterSize, workloadScale, workloadSet, dis, numEntropy)
+        #print(r)
+        index = len([i for i in r["dist"] if int(i) > 0]) - 1
+        if index == 0:
+            for j in range(len(res)):
+                res[j].append(r)
+        else:
+            res[index].append(r)
+    
+    newRes = []
+    #print(len(res))
     for i in range(len(res)):
-        print("# of res: " + str(i + 1))
-        print("entropy dist fairness perf")
-        print(r[i])
-        newList = sorted(r[i], key=lambda k: k['entropy'])
-        for n in newList:
-            print(str(n["entropy"]) + " " + str(n["dist"]) + " " + str(n["fairness"]) + " " + str(n["perf"]))
+        '''print("# of res: " + str(i + 1))
+        print("entropy\tdist\tfairness\tperf")'''
+        newList = sorted(res[i], key=lambda k: k['entropy'])
+        newRes.append(newList)
+        '''for n in newList:
+            print(str(n["entropy"]) + "\t" + str(n["dist"]) + "\t" + str(n["fairness"]) + "\t" + str(n["perf"]))'''
+        
+    # print 4 reosurce result
+    '''print("entropy\tdist\tfairness\tperf")
+    for n in newRes[3]:
+        print(str(n["entropy"]) + "\t" + str(n["dist"]) + "\t" + str(n["fairness"]) + "\t" + str(n["perf"]))'''
+    
+    return newRes
              
     
 def genCombinations(categoryNum, totalNum):
@@ -163,6 +187,7 @@ def genCom(upper, cur, left):
     
     
 def entropyTest():
+    #[9, 6, 2, 2, 2, 1, 1, 1]  1.932931647
     v1 = [6, 1, 1, 1]
     v2 = [4, 1, 1, 1]
     v3 = [2, 1, 1, 1]
@@ -175,11 +200,63 @@ def entropyTest():
     v10 = [1, 1, 1, 6]
     v11 = [1, 1, 1, 4]
     v12 = [1, 1, 1, 2]
-    vv1 = [v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12]
-    vv2 = [v1, v3, v5, v7]
-    Utility.calEntropyOfVectorList(vv1, 4)
+    vv1 = [v1, v2, v4, v5, v7, v8, v10, v11]
+    vv2 = [v1, v1, v1, v1, v1, v1, v1, v1, v1, v2, v2, v2, v2, v2, v2, v4, v4, v5, v5, v7, v7, v8, v10, v11]
+    print(len(vv2))
+    e = Utility.calEntropyOfVectorList(vv2, 8)
+    print(e)
     
-
+    
+def calEntropy():
+    disList = genCombin(8, 3 * 8)
+    res = []
+    for i in range(8):
+        res.append([])
+    
+    # for accerate
+    selectedDisList = []
+    for l in disList:
+        if len([i for i in l if i > 0]) == 1 or len([i for i in l if i > 0]) == 8:
+            selectedDisList.append(l)
+    
+    
+    for d in selectedDisList:
+        s = 0
+        for i in d:
+            s += i
+        for i in range(len(d)):
+            d[i] = float(d[i]) / s
+            
+        s = 0
+        for p in d: 
+            if p > 0:
+                s += p * math.log(float(1) / p) / math.log(2)
+        print(s)
+            
+    '''newList = []
+    for d in selectedDisList:
+        one = d[0] + d[1]
+        two = d[2] + d[3]
+        three = d[4] + d[5]
+        four = d[6] + d[7]
+        l = [one, two, three, four]
+        newList.append(l)
+        
+    for d in newList:
+        s = 0
+        for i in d:
+            s += i
+        for i in range(len(d)):
+            d[i] = float(d[i]) / s
+            
+        s = 0
+        for p in d:
+            if p > 0:
+                s += p * math.log(float(1) / p) / math.log(2)
+        print(s)'''
+        
+        
+    
 if __name__ == '__main__':
     '''print("fixed cluster size:")
     for scale in range(1, 11):
@@ -200,5 +277,52 @@ if __name__ == '__main__':
         print("\n")'''
         
     #entropyTest()
-    evaluateEntropy(1, 4, "workloadSet")
+    
+    '''sizeList = [1 * 2, 2 * 2, 4 * 2, 6 * 2, 8 * 2]
+    #sizeList = [1, 2]
+    res = []
+    for i in range(len(sizeList)):
+        res.append([])
+        
+    for i in range(len(sizeList)):
+        #[[1], [2], [3], [4]]
+        #"entropy dist fairness perf"
+        l = evaluateEntropy(sizeList[i], 8, "workloadSet", 4)
+        res4 = l[3]
+        for j in res4:
+            res[i].append(j)
+    #print(res)
+    for i in range(len(res[0])):
+        s = str(res[0][i]["entropy"])
+        for j in range(len(sizeList)):
+            s += ("," + res[j][i]["fairness"])
+            s += ("," + res[j][i]["perf"])
+        print(s)'''
+            
+    #evaluateEntropy(1, 3, "workloadSetMore", 4)
+    #evaluateEntropy(1, 4, "workloadSet", 4)
+    
+    '''scaleList = [1, 1, 1, 1]
+    #sizeList = [1, 2]
+    res = []
+    for i in range(len(scaleList)):
+        res.append([])
+        
+    for i in range(len(scaleList)):
+        #[[1], [2], [3], [4]]
+        #"entropy dist fairness perf"
+        l = evaluateEntropy(1, scaleList[i], "workloadSet", 4)
+        res4 = l[3]
+        for j in res4:
+            res[i].append(j)
+    #print(res)
+    for i in range(len(res[0])):
+        s = str(res[0][i]["entropy"])
+        for j in range(len(scaleList)):
+            s += ("," + res[j][i]["fairness"])
+            s += ("," + res[j][i]["perf"])
+        print(s)'''
+    
+    #entropyTest()
+    #calEntropy()
     

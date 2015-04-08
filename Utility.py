@@ -72,11 +72,23 @@ class Utility(object):
     
     
     @classmethod
-    def calEntropyOfVectorList(cls, vectorList, vectorQuantinationNum = 4):    
-        resVectorArray = numpy.asarray(vectorList)
+    def calEntropyOfVectorList(cls, vectorList, vectorQuantinationNum = 4):  
+        #print(vectorList)  
+        dict4 = {(6, 1, 1, 1): 0, (2, 1, 1, 1): 0, (1, 6, 1, 1): 1, (1, 2, 1, 1): 1, (1, 1, 6, 1): 2, (1, 1, 2, 1): 2, (1, 1, 1, 6): 3, (1, 1, 1, 2): 3}
+        dict8 = {(6, 1, 1, 1): 0, (3, 1, 1, 1): 1, (1, 6, 1, 1): 2, (1, 3, 1, 1): 3, (1, 1, 6, 1): 4, (1, 1, 3, 1): 5, (1, 1, 1, 6): 6, (1, 1, 1, 3): 7}
+        
+        '''resVectorArray = numpy.asarray(vectorList)
         r, d = kmeans(resVectorArray, vectorQuantinationNum, 1000)
-        (code, distor) = vq(resVectorArray, r)
+        (code, distor) = vq(resVectorArray, r)'''
         #print(code)
+        code = []
+        for v in vectorList:
+            if vectorQuantinationNum == 4:
+                code.append(dict4[tuple(v)])
+            else:
+                code.append(dict8[tuple(v)])
+        #print(code)
+        
         distributions = {}
         for n in code:
             if n in distributions.keys():
