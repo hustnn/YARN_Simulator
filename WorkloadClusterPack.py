@@ -12,6 +12,7 @@ from Utility import Utility
 
 import math
 
+
 def execSimulation(clusterSize, workloadScale, workloadSet, dist, numEntropy = 4):
     cluster = Cluster(clusterSize)
     queueWorkloads = {"queue1": workloadSet}

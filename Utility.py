@@ -76,10 +76,12 @@ class Utility(object):
         #print(vectorList)  
         #dict4 = {(6, 1, 1, 1): 0, (2, 1, 1, 1): 0, (1, 6, 1, 1): 1, (1, 2, 1, 1): 1, (1, 1, 6, 1): 2, (1, 1, 2, 1): 2, (1, 1, 1, 6): 3, (1, 1, 1, 2): 3}
         #dict8 = {(6, 1, 1, 1): 0, (3, 1, 1, 1): 1, (1, 6, 1, 1): 2, (1, 3, 1, 1): 3, (1, 1, 6, 1): 4, (1, 1, 3, 1): 5, (1, 1, 1, 6): 6, (1, 1, 1, 3): 7}
+        code = vectorList
         
-        resVectorArray = numpy.asarray(vectorList)
+        '''resVectorArray = numpy.asarray(vectorList)
         r, d = kmeans(resVectorArray, vectorQuantinationNum, 1000)
-        (code, distor) = vq(resVectorArray, r)
+        (code, distor) = vq(resVectorArray, r)'''
+        
         #print(code)
         '''code = []
         for v in vectorList:

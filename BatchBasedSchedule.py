@@ -13,6 +13,69 @@ import time
 import itertools
 from datetime import datetime
 from random import randint
+from Cluster import Cluster
+from YARNScheduler import YARNScheduler
+from WorkloadGenerator import WorkloadGenerator
+
+import copy
+from CodeWarrior.Standard_Suite import windows
+
+
+def execSimulation(clusterSize, queueName, jobList):
+    cluster = Cluster(clusterSize)
+    #queueWorkloads = {"queue1": workloadSet}
+    
+    #print("fair")
+    fairScheduler =  YARNScheduler(cluster, True, 1.0)
+    fairScheduler.createQueue("queue1", "MULTIFAIR", True, "root")
+    
+    workloadGen = WorkloadGenerator(Configuration.SIMULATION_PATH, Configuration.WORKLOAD_PATH, {queueName: jobList}, cluster)
+    workloadGen.genWorkloadByList(queueName, copy.deepcopy(jobList))
+        
+    simulationStepCount = 0
+    while True:
+        if workloadGen.allJobsSubmitted() and len(fairScheduler.getAllApplications()) == 0:
+            break
+        currentTime = simulationStepCount * Configuration.SIMULATION_STEP
+        workloadGen.submitJobs(currentTime, fairScheduler)
+        fairScheduler.simulate(Configuration.SIMULATION_STEP, currentTime)
+        simulationStepCount += 1
+        
+    fairMakespan = simulationStepCount * Configuration.SIMULATION_STEP
+    fairFinishedApp = fairScheduler.getFinishedAppsInfo()
+    
+    #print("perf")
+    cluster = Cluster(clusterSize)
+    perfScheduler = YARNScheduler(cluster, True, 0.0)
+    perfScheduler.createQueue("queue1", "MULTIFAIR", True, "root")
+    
+    workloadGen = WorkloadGenerator(Configuration.SIMULATION_PATH, Configuration.WORKLOAD_PATH, {queueName: jobList}, cluster)
+    workloadGen.genWorkloadByList(queueName, copy.deepcopy(jobList))
+        
+    simulationStepCount = 0
+    while True:
+        if workloadGen.allJobsSubmitted() and len(perfScheduler.getAllApplications()) == 0:
+            break
+        currentTime = simulationStepCount * Configuration.SIMULATION_STEP
+        workloadGen.submitJobs(currentTime, perfScheduler)
+        perfScheduler.simulate(Configuration.SIMULATION_STEP, currentTime)
+        simulationStepCount += 1
+        
+    perfMakespan = simulationStepCount * Configuration.SIMULATION_STEP
+    perfFinishedApp = perfScheduler.getFinishedAppsInfo()
+    
+    count = 0
+    reduction = 0.0
+    for k in perfFinishedApp.keys():
+        count += 1
+        tPerf = perfFinishedApp[k]
+        tFair = fairFinishedApp[k]
+        if tPerf > tFair:
+            red = float(tPerf - tFair) / tFair
+            reduction += red
+            
+    return {"fairness": str(reduction / count), "perf": str(1 - min(float(perfMakespan) / fairMakespan, 1))}
+
 
 def genJob(num):
     fileName = Configuration.WORKLOAD_PATH + "workloadSet"
@@ -143,6 +206,11 @@ def genWindowBasedList(A, windowSize):
         w.append(A[i * windowSize : (i + 1) * windowSize])
         
     return w
+
+
+def sortWindowBasedList(windowList):
+    for i in range(len(windowList)):
+        windowList[i] = sorted(windowList[i])
     
     
 def genAverageEntropyByWindow(windowList):
@@ -152,6 +220,125 @@ def genAverageEntropyByWindow(windowList):
         totalEntropy += entropy
     aveEn = float(totalEntropy) / len(windowList)
     return aveEn
+
+
+def genJobsAccordingCategoryList(categoryList):
+    jobs = []
+    fileName = Configuration.WORKLOAD_PATH + "workloadSet"
+    f = open(fileName, "r")
+    lines = f.readlines()
+    f.close()
+    jobCount = 0
+    for i in categoryList:
+        #print(categoryList)
+        jobCount += 1
+        line = lines[i - 1]
+        items = line.split(",")
+        numOfTask = int(items[0])
+        taskExecTime = int(items[1])
+        submissionTime = int(items[2])
+        memory = int(items[3])
+        cpu = int(items[4])
+        disk = int(items[5])
+        network = int(items[6])
+        job = JobGenerator.genComputeIntensitveJob(str(jobCount), numOfTask, memory, cpu, disk, network, taskExecTime, submissionTime)
+        jobs.append(job)
+    return jobs
+
+
+def genAveragePerfFairForWindowList(windowList, clusterSize):
+    #print(windowList)
+    avePerf = 0
+    aveFair = 0
+    count = 0
+    for w in windowList:
+        #print(w)
+        jobs = genJobsAccordingCategoryList(w)
+        res = execSimulation(clusterSize, "queue1", jobs)
+        #print(res)
+        count += 1
+        avePerf += float(res["perf"])
+        aveFair += float(res["fairness"])
+    return avePerf / count, aveFair / count
+
+
+def calAverageValueOfWindowBasedList(windowSize = 10, repeatNum = 5, swapNum = 10, clusterSize = 1):
+    l = genJobCateList([1,2,3,4], 20)
+    windowNum = len(l) / windowSize
+    w = genWindowBasedList(l, windowSize)
+    swapNumList = [0]
+    
+    for i in range(1, swapNum):
+        for j in range(repeatNum):
+            swapNumList.append(i)
+    
+    entropyToPerf = {}
+    entropyToFairness = {}
+    result = []
+    
+    swapNumCount = 0
+    for i in swapNumList:
+        beforeSwap = list(w)
+        afterSwap = swapItemByWindow(beforeSwap, i, windowNum, windowSize)
+        sortWindowBasedList(afterSwap)
+        e = genAverageEntropyByWindow(afterSwap)
+        perf, fairness = genAveragePerfFairForWindowList(afterSwap, clusterSize)
+        #print(e, perf, fairness)
+        entropyToPerf.setdefault(float('%0.1f'%e), []).append(perf)
+        entropyToFairness.setdefault(float('%0.1f'%e), []).append(fairness)
+        swapNumCount += 1
+        #print(swapNumCount)
+    
+    for k in entropyToPerf.keys():
+        result.append({"entropy": k, 
+                       "perf": sum(entropyToPerf[k]) / len(entropyToPerf[k]), 
+                       "fairness": sum(entropyToFairness[k]) / len(entropyToFairness[k])})
+        
+    sortedResult = sorted(result, key=lambda k: k['entropy'])
+    for i in sortedResult:
+        print i["entropy"], i["perf"], i["fairness"]
+        
+        
+def calAverageValueOfWindowBasedListForDiffClusterSize(windowSize = 10, repeatNum = 5, swapNum = 10, clusterSizeList = []):
+    l = genJobCateList([1,2,3,4], 20)
+    windowNum = len(l) / windowSize
+    w = genWindowBasedList(l, windowSize)
+    swapNumList = [0]
+    
+    for i in range(1, swapNum):
+        for j in range(repeatNum):
+            swapNumList.append(i)
+    
+    entropyToPerf = {}
+    entropyToFairness = {}
+    resultForDifferentSize = {}
+    for size in clusterSizeList:
+        resultForDifferentSize[size] = [{}, {}, []]
+    
+    swapNumCount = 0
+    for i in swapNumList:
+        beforeSwap = list(w)
+        afterSwap = swapItemByWindow(beforeSwap, i, windowNum, windowSize)
+        sortWindowBasedList(afterSwap)
+        e = genAverageEntropyByWindow(afterSwap)
+        for size in clusterSizeList:
+            perf, fairness = genAveragePerfFairForWindowList(afterSwap, size)
+            resultForDifferentSize[size][0].setdefault(float('%0.1f'%e), []).append(perf)
+            resultForDifferentSize[size][1].setdefault(float('%0.1f'%e), []).append(fairness)
+            
+    for size in resultForDifferentSize.keys():
+        result = []
+        for k in resultForDifferentSize[size][0].keys():
+            result.append({"entropy": k, 
+                       "perf": sum(resultForDifferentSize[size][0][k]) / len(resultForDifferentSize[size][0][k]), 
+                       "fairness": sum(resultForDifferentSize[size][1][k]) / len(resultForDifferentSize[size][1][k])})
+            resultForDifferentSize[size][2] = sorted(result, key=lambda k: k['entropy'])
+    
+    for k, v in resultForDifferentSize.items():
+        print("cluster size: " + str(k))
+        print "Entropy", "Perf", "Fairness"
+        for i in v[2]:
+            print i["entropy"], i["perf"], i["fairness"]
 
 
 if __name__ == '__main__':
@@ -169,18 +356,10 @@ if __name__ == '__main__':
     print(RES[0])
     print(str(datetime.now()))'''
     
-    
     # Gen combination by swapping
-    l = genJobCateList([1,2,3,4], 10)
-    w = genWindowBasedList(l, 10)
-    swapNumList = [0]
-    repeatNum = 10
-    for i in range(1, 20):
-        for j in range(repeatNum):
-            swapNumList.append(i)
-            
-    for i in swapNumList:
-        beforeSwap = list(w)
-        afterSwap = swapItemByWindow(beforeSwap, i, 4, 10)
-        e = genAverageEntropyByWindow(afterSwap)
-        print(e)
+    '''for clusterSize in [1, 2, 3, 4, 5]:
+        print("cluster size: " + str(clusterSize))
+        print "Entropy", "Perf", "Fairness"
+        calAverageValueOfWindowBasedList(20, 10, 10, clusterSize)'''
+    
+    calAverageValueOfWindowBasedListForDiffClusterSize(20, 10, 10, [1,2,4,6,8,10])

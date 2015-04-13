@@ -20,13 +20,13 @@ BLOCK_SIZE = 256
 
 
 # simulation parameter
-#SIMULATION_PATH = "/Users/niuzhaojie/GitHub/YARN_Simulator/"
+SIMULATION_PATH = "/Users/niuzhaojie/GitHub/YARN_Simulator/"
 #SIMULATION_PATH = "C:\\Users\\zhaojie\\Documents\\GitHub\\YARN_Simulator\\"
-SIMULATION_PATH = "G:\\Github\\YARN_Simulator\\"
+#SIMULATION_PATH = "G:\\Github\\YARN_Simulator\\"
 
-#WORKLOAD_PATH = "/Users/niuzhaojie/GitHub/YARN_Simulator/workload/"
+WORKLOAD_PATH = "/Users/niuzhaojie/GitHub/YARN_Simulator/workload/"
 #WORKLOAD_PATH = "C:\\Users\\zhaojie\\Documents\\GitHub\\YARN_Simulator\\workload\\"
-WORKLOAD_PATH = "G:\\Github\\YARN_Simulator\\workload\\"
+#WORKLOAD_PATH = "G:\\Github\\YARN_Simulator\\workload\\"
 
 
 SIMULATION_STEP = 1 #sec 

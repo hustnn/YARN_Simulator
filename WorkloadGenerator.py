@@ -48,6 +48,12 @@ class WorkloadGenerator(object):
         return ret
     
     
+    def genWorkloadByList(self, queue, jobs):
+        for job in jobs:
+            self._queues[queue]["totalJobs"] += 1
+            self._queues[queue]["jobList"].append(job)
+    
+    
     def genWorkloadByScale(self, queue, scale = 1):
         fileName = self._workloadPath + self._queues[queue]["traceFile"]
         f = open(fileName, "r")
