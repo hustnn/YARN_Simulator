@@ -4,9 +4,9 @@ Created on Jan 16, 2015
 @author: zhaojie
 '''
 
-import numpy
-from numpy import array
-from scipy.cluster.vq import vq, kmeans, whiten, kmeans2
+#import numpy
+#from numpy import array
+#from scipy.cluster.vq import vq, kmeans, whiten, kmeans2
 
 from Resources import Resources
 
@@ -97,19 +97,19 @@ class Utility(object):
                 distributions[n] = distributions[n] + 1
             else:
                 distributions[n] = 1
+        
         totalCount = len(code)
         probDis = {}
         for k, v in distributions.items():
             probDis[k] = float(v) / totalCount
-        
         return cls.calEntropy(probDis)
     
     
     @staticmethod
     def calEntropy(probDict):
-        sum = 0
+        s = 0
         for p in probDict.values(): 
             if p > 0:
-                sum += p * math.log(float(1) / p) / math.log(2)
+                s += p * math.log(float(1) / p) / math.log(2)
         
-        return sum
+        return s

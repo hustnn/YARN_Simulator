@@ -173,6 +173,7 @@ class YARNScheduler(object):
                 #default hadoop scheduling algorithm: call parent queue assign container method, and then leaf queue assign container method
                 if self._schedulingMode == "default":
                     assignedResource = self._rootQueue.assignContainer(node)
+                    #print(assignedResource)
                     if Resources.greaterAtLeastOne(assignedResource, Resources.none()):
                         assignedContainer = True
                         
@@ -343,10 +344,14 @@ class YARNScheduler(object):
         
         self.update()
         
+        #print("node update begin")
+        
         for node in self._cluster.getAllNodes():
             #print("node id : " + str(node))
             self.nodeUpdate(node)
             #print(node.getAvailableResource())
+            
+        #print("node update end")
             
         #check locality
         '''totalTask = 0
@@ -403,7 +408,9 @@ class YARNScheduler(object):
         self._disk.append(float(disk) / totalDisk)
         self._network.append(float(network) / totalNetwork)
         
+        #print("task schedule begin")
         self.schedule(step)
+        #print("task schedule end")
         self.updateStatusAfterScheduling(step, currentTime)
         
         

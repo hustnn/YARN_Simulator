@@ -18,7 +18,7 @@ from YARNScheduler import YARNScheduler
 from WorkloadGenerator import WorkloadGenerator
 
 import copy
-from CodeWarrior.Standard_Suite import windows
+
 
 
 def execSimulation(clusterSize, queueName, jobList):
@@ -36,6 +36,7 @@ def execSimulation(clusterSize, queueName, jobList):
     while True:
         if workloadGen.allJobsSubmitted() and len(fairScheduler.getAllApplications()) == 0:
             break
+        #print(workloadGen.allJobsSubmitted(), len(fairScheduler.getAllApplications()))
         currentTime = simulationStepCount * Configuration.SIMULATION_STEP
         workloadGen.submitJobs(currentTime, fairScheduler)
         fairScheduler.simulate(Configuration.SIMULATION_STEP, currentTime)
@@ -56,6 +57,7 @@ def execSimulation(clusterSize, queueName, jobList):
     while True:
         if workloadGen.allJobsSubmitted() and len(perfScheduler.getAllApplications()) == 0:
             break
+        #print(workloadGen.allJobsSubmitted(), len(fairScheduler.getAllApplications()))
         currentTime = simulationStepCount * Configuration.SIMULATION_STEP
         workloadGen.submitJobs(currentTime, perfScheduler)
         perfScheduler.simulate(Configuration.SIMULATION_STEP, currentTime)
@@ -217,6 +219,7 @@ def genAverageEntropyByWindow(windowList):
     totalEntropy = 0
     for w in windowList:
         entropy = Utility.calEntropyOfVectorList(w, 4)
+        #print("entropy" + str(entropy))
         totalEntropy += entropy
     aveEn = float(totalEntropy) / len(windowList)
     return aveEn
@@ -254,16 +257,17 @@ def genAveragePerfFairForWindowList(windowList, clusterSize):
     for w in windowList:
         #print(w)
         jobs = genJobsAccordingCategoryList(w)
+        #print("exec simu start")
         res = execSimulation(clusterSize, "queue1", jobs)
-        #print(res)
+        #print("exec simu end")
         count += 1
         avePerf += float(res["perf"])
         aveFair += float(res["fairness"])
     return avePerf / count, aveFair / count
 
 
-def calAverageValueOfWindowBasedList(windowSize = 10, repeatNum = 5, swapNum = 10, clusterSize = 1):
-    l = genJobCateList([1,2,3,4], 20)
+def calAverageValueOfWindowBasedList(workloadScale = 10, windowSize = 10, repeatNum = 5, swapNum = 10, clusterSize = 1):
+    l = genJobCateList([1,2,3,4], workloadScale)
     windowNum = len(l) / windowSize
     w = genWindowBasedList(l, windowSize)
     swapNumList = [0]
@@ -299,32 +303,38 @@ def calAverageValueOfWindowBasedList(windowSize = 10, repeatNum = 5, swapNum = 1
         print i["entropy"], i["perf"], i["fairness"]
         
         
-def calAverageValueOfWindowBasedListForDiffClusterSize(windowSize = 10, repeatNum = 5, swapNum = 10, clusterSizeList = []):
-    l = genJobCateList([1,2,3,4], 20)
+def calAverageValueOfWindowBasedListForDiffClusterSize(workloadScale = 20, windowSize = 10, repeatNum = 3, swapInternal = 1, swapNum = 10, clusterSizeList = []):
+    l = genJobCateList([1,2,3,4], workloadScale)
     windowNum = len(l) / windowSize
     w = genWindowBasedList(l, windowSize)
-    swapNumList = [0]
+    #swapNumList = [0]
+    swapNumList = []
     
-    for i in range(1, swapNum):
+    swapList = []
+    for i in range(swapNum + 1):
+        swapList.append( max(1, swapInternal * i))
+    
+    for i in swapList:
         for j in range(repeatNum):
             swapNumList.append(i)
     
-    entropyToPerf = {}
-    entropyToFairness = {}
     resultForDifferentSize = {}
     for size in clusterSizeList:
         resultForDifferentSize[size] = [{}, {}, []]
     
-    swapNumCount = 0
     for i in swapNumList:
         beforeSwap = list(w)
         afterSwap = swapItemByWindow(beforeSwap, i, windowNum, windowSize)
         sortWindowBasedList(afterSwap)
         e = genAverageEntropyByWindow(afterSwap)
+        print("entropy:" + str(float('%.1f'%e)))
+
         for size in clusterSizeList:
             perf, fairness = genAveragePerfFairForWindowList(afterSwap, size)
-            resultForDifferentSize[size][0].setdefault(float('%0.1f'%e), []).append(perf)
-            resultForDifferentSize[size][1].setdefault(float('%0.1f'%e), []).append(fairness)
+            print("size: " + str(size))
+            print(perf, fairness)
+            resultForDifferentSize[size][0].setdefault(float('%.1f'%e), []).append(perf)
+            resultForDifferentSize[size][1].setdefault(float('%.1f'%e), []).append(fairness)
             
     for size in resultForDifferentSize.keys():
         result = []
@@ -362,4 +372,16 @@ if __name__ == '__main__':
         print "Entropy", "Perf", "Fairness"
         calAverageValueOfWindowBasedList(20, 10, 10, clusterSize)'''
     
-    calAverageValueOfWindowBasedListForDiffClusterSize(20, 10, 10, [1,2,4,6,8,10])
+    #calAverageValueOfWindowBasedListForDiffClusterSize(24, 24, 10, 10, [1,2,4,6,8,10])
+    calAverageValueOfWindowBasedListForDiffClusterSize(800, 800, 1, 60, 10, [100, 200, 400, 600, 800])
+    
+    #print(Utility.calEntropyOfVectorList([1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4]))
+    
+    #ratios = [{"window": 20, "cluster": 5}, {"window": 40, "cluster": 10}, {"window": 80, "cluster": 20}, {"window": 160, "cluster": 40}]
+    '''ratios = [{"window": 160, "cluster": 40}]
+    for i in ratios:
+        print("window: " + str(i["window"]) + " cluster: " + str(i["cluster"]))
+        print "Entropy", "Perf", "Fairness"
+        calAverageValueOfWindowBasedList(i["window"], 10, 10, i["cluster"])'''
+    
+    #calAverageValueOfWindowBasedList(24, 24, 10, 10, 6)
