@@ -22,6 +22,10 @@ class RMContainerInfo(object):
         self._startTime = startTime
         self._finishTime = self._startTime
         
+    
+    def getContainerID(self):
+        return self._containerID
+        
         
     def getTask(self):
         return self._task

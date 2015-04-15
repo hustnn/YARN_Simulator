@@ -111,6 +111,7 @@ class AppSchedulable(Schedulable):
     def assignContainerToTask(self, node, priority, task, reserved):
         container = None
         if reserved:
+            print("reserved")
             container = node.getReservedContainer()
         else:
             container = self.createContainer(node, task)
@@ -130,6 +131,16 @@ class AppSchedulable(Schedulable):
             
             # inform the node
             node.allocateContainer(container)
+            
+            # add to new launch container list of the scheduler
+            self._scheduler._newLaunchContainerList.append(
+                                                           {"containerID": container.getContainerID(),
+                                                            "appID": self._app.getApplicationID(), 
+                                                            "node": node.getNodeID(), 
+                                                            "priority": priority, 
+                                                            "task": task.getTaskID(),
+                                                            "reserved": reserved})
+            self._scheduler._launchedContainerDict[container.getContainerID()] = container
             
             return task.getResource()
         else:

@@ -70,6 +70,11 @@ class FSSchedulerApp(object):
     
     def getLiveContainers(self):
         return self._liveContainers
+    
+    
+    def scheduleLiveContaienrs(self, step):
+        for liveContaienr in self._liveContainers[:]:
+            liveContaienr.getTask().schedule(step)
         
         
     def updateResourceRequests(self, taskList):
@@ -159,7 +164,8 @@ class FSSchedulerApp(object):
         task = container.getTask()
         task.nodeAllocate(container.getNode())
         task.updateStatus(SchedulableStatus.RUNNING)
-        self.updateResourceConsumptionOfTask(task)
+        
+        #self.updateResourceConsumptionOfTask(task)
         
         self._liveContainers.append(container)
         self._allAllocatedContainers.append(container)

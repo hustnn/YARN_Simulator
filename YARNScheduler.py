@@ -12,9 +12,11 @@ from Resources import Resources
 from SchedulableStatus import SchedulableStatus
 from SimilarityType import SimilarityType
 from Utility import Utility
+from RMContainerInfo import RMContainerInfo
 
 import sys
 import math
+import time
 from random import randint
 
 class YARNScheduler(object):
@@ -37,6 +39,7 @@ class YARNScheduler(object):
         self._rootQueue.setPolicy(PolicyParser.getInstance("fair", self._clusterCapacity))
         self._queues = {"root": self._rootQueue}
         self._applications = []
+        self._applicationsDict = {}
         self._waitingJobList = {}
         self._currentTime = 0
         # 0 <= tradeoff knob <= 1, 0 indicates complete performance optimization, 1 indicates complete fairness 
@@ -62,6 +65,16 @@ class YARNScheduler(object):
         self._cpu = []
         self._disk = []
         self._network = []
+        
+        #multi processing 
+        self._newLaunchContainerList = []
+        self._completedContaienrList = []
+        self._launchedContainerDict = {}
+        
+    
+    def startService(self, q):
+        # start node update thread
+        pass
         
         
     def getUtilization(self):
@@ -141,10 +154,12 @@ class YARNScheduler(object):
         queue.addApp(schedulerApp)
         schedulerApp.assignToQueue(queue)
         self._applications.append(schedulerApp)
+        self._applicationsDict[schedulerApp.getApplicationID()] = schedulerApp
         
         
     def removeApplication(self, app):
         self._applications.remove(app)
+        del self._applicationsDict[app.getApplicationID()]
         
         for container in app.getLiveContainers():
             self.completeContainer(container)
@@ -284,14 +299,17 @@ class YARNScheduler(object):
         
         
     def activateWaitingJobs(self, currentTime):
+        newJobs = {}
         for k, v in self._waitingJobList.items():
             for job in v:
                 job.updateStatus(SchedulableStatus.RUNNING)
                 job.setStartTime(currentTime)
                 job.activeAllTasks()
                 self.addApplication(job, k)
+                newJobs.setdefault(k, []).append(job)
                 
         self._waitingJobList.clear()
+        return newJobs
         
         
     def update(self):
@@ -301,26 +319,22 @@ class YARNScheduler(object):
     
     
     def schedule(self, step):
-        '''for node in self._cluster.getAllNodes():
-            print(str(node.getAvailableResource()))'''
-            
         for app in self._applications:
-            #print(app.getApplicationID(), str(app.getCurrentConsumption()))
-            for liveContainer in app.getLiveContainers():
-                liveContainer.getTask().schedule(step)
+            app.scheduleLiveContaienrs(step)
                 
                 
     def updateStatusAfterScheduling(self, step, currentTime):
         # update status of running containers
         finishedContainerList = []
         for app in self._applications:
-            for liveContainer in app.getLiveContainers():
+            for liveContainer in app.getLiveContainers()[:]:
                 task = liveContainer.getTask()
                 if task.getWorkload() == 0:
                     finishedContainerList.append(liveContainer)
                     
         for container in finishedContainerList:
             self.completeContainer(container)
+            self._completedContaienrList.append(container)
             
         # update status of running jobs
         finishedApps = []
@@ -340,16 +354,15 @@ class YARNScheduler(object):
         
     def simulate(self, step, currentTime):
         self._currentTime = currentTime
-        self.activateWaitingJobs(currentTime)
+        #self.activateWaitingJobs(currentTime)
         
-        self.update()
+        # compute fair share
+        #self.update()
         
         #print("node update begin")
         
-        for node in self._cluster.getAllNodes():
-            #print("node id : " + str(node))
-            self.nodeUpdate(node)
-            #print(node.getAvailableResource())
+        #for node in self._cluster.getAllNodes():
+        #    self.nodeUpdate(node)
             
         #print("node update end")
             
@@ -465,3 +478,17 @@ class YARNScheduler(object):
                     
             queue.setMultiResFitness(maxMulResFitness)
                 
+                
+    def launchAllocatedContainer(self, containerID, nodeID, taskID, appID):
+        app = self._applicationsDict[appID]
+        job = app.getJob()
+        task = job._taskDict[taskID]
+        node = self._cluster._nodeDict[nodeID]
+        
+        task.nodeAllocate(node)
+        task.updateStatus(SchedulableStatus.RUNNING)
+        
+        container = RMContainerInfo(containerID, app, node, task, self.getCurrentTime())
+        app._liveContainers.append(container)
+        
+        node.allocateContainer(container)

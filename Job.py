@@ -18,6 +18,7 @@ class Job(object):
         self._jobID = jobID
         self._status = SchedulableStatus.WAITING
         self._taskList = []
+        self._taskDict = {}
         self._submissionTime = submissionTime
         self._startTime = None
         self._finishTime = None
@@ -29,6 +30,7 @@ class Job(object):
         
     def addTask(self, task):
         self._taskList.append(task)
+        self._taskDict[task.getTaskID()] = task
         
         
     def getResourceVector(self):
