@@ -180,7 +180,9 @@ class YARNScheduler(object):
             # no reservation, schedule at queue which is farthest below fair share
             while node.getReservedContainer() == None:
                 assignedContainer = False
-                if node.getAvailableResource() == Resources.none() and len(self._applications) == 0:
+                #if node.getAvailableResource() == Resources.none() and len(self._applications) == 0:
+                #    break
+                if not Resources.allAvailable(node.getAvailableResource()) or len(self._applications) == 0:
                     break
                 
                 self.calMultiResourceFitness(self._rootQueue, node)
@@ -350,6 +352,48 @@ class YARNScheduler(object):
             self.removeApplication(app)
             app.getJob().setFinishTime(currentTime + step)
             self._finishedApps.append(app)
+            
+            
+    def oldSimulate(self, step, currentTime):
+        self._currentTime = currentTime
+        
+        # compute fair share
+        self.update()
+        
+        for node in self._cluster.getAllNodes():
+            self.nodeUpdate(node)
+            
+        for node in self._cluster.getAllNodes():
+            node.calDiskBandwidth()
+            node.calNetworkBandwidth()
+
+        totalMemory = 0
+        totalCPU = 0
+        totalDisk = 0
+        totalNetwork = 0
+        memory = 0
+        cpu = 0
+        disk = 0
+        network = 0
+        for node in self._cluster.getAllNodes():
+            total = node.getCapacity()
+            used = node.getUsedResource()
+            totalMemory += total.getMemory()
+            totalCPU += total.getCPU()
+            totalDisk += total.getDisk()
+            totalNetwork += total.getNetwork()
+            memory += used.getMemory()
+            cpu += used.getCPU()
+            disk += used.getDisk()
+            network += used.getNetwork()
+            
+        self._memory.append(float(memory) / totalMemory)
+        self._cpu.append(float(cpu) / totalCPU)
+        self._disk.append(float(disk) / totalDisk)
+        self._network.append(float(network) / totalNetwork)
+        
+        self.schedule(step)
+        self.updateStatusAfterScheduling(step, currentTime)
         
         
     def simulate(self, step, currentTime):

@@ -41,7 +41,7 @@ class Utility(object):
             else:
                 return 1
     
-    @classmethod
+    '''@classmethod
     def calEntropyOfWorkload(cls, apps, vectorQuantinationNum):
         resVectorList = []
         for app in apps:
@@ -68,7 +68,7 @@ class Utility(object):
         for k, v in distributions.items():
             probDis[k] = float(v) / totalCount
         
-        return cls.calEntropy(probDis)
+        return cls.calEntropy(probDis)'''
     
     
     @classmethod

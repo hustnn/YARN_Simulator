@@ -30,6 +30,11 @@ class Resources(object):
     
     
     @staticmethod
+    def allAvailable(r):
+        return r.getMemory() > 0 and r.getCPU() > 0 and r.getDisk() > 0 and r.getNetwork() > 0
+    
+    
+    @staticmethod
     def addTo(lhs, rhs):
         lhs.setMemory(lhs.getMemory() + rhs.getMemory())
         lhs.setCPU(lhs.getCPU() + rhs.getCPU())

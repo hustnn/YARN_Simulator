@@ -22,41 +22,65 @@ import copy
 import multiprocessing
 import time
 
-def startService(scheduler, newLaunchQueue, newAppsQueue, completedQueue):
+def startNodaUpdateService(scheduler, newLaunchQueue, newAppsQueue, completedQueue, e):
     # start node update thread
-    while True:
+    while True and not e.is_set():
         while(not completedQueue.empty()):
-            print("completed container")
+            #print("completed container")
             containerID = completedQueue.get()
             container = scheduler._launchedContainerDict[containerID]
             scheduler.completeContainer(container)
         
         while(not newAppsQueue.empty()):
+            #print("new apps submitted")
             newApps = newAppsQueue.get()
             for k, v in newApps.items():
                 for job in v:
                     scheduler.addApplication(job, k)
         
         scheduler.update()
-        #print("before node update")
         for node in scheduler._cluster.getAllNodes():
             scheduler.nodeUpdate(node)
             for container in scheduler._newLaunchContainerList:
-                print("launch container")
+                #print("launch container")
                 newLaunchQueue.put(container)
             scheduler._newLaunchContainerList = []
-        #print("after node update")   
-        #time.sleep(1)
-        #print("process: " + str(obj))
+        
 
+def oldScheduling(clusterSize, queueName, jobList, tradeoff):        
+    cluster = Cluster(clusterSize)
 
-def execSimulation(clusterSize, queueName, jobList):
+    scheduler =  YARNScheduler(cluster, True, tradeoff)
+    scheduler.createQueue("queue1", "MULTIFAIR", True, "root")
+    
+    workloadGen = WorkloadGenerator(Configuration.SIMULATION_PATH, Configuration.WORKLOAD_PATH, {queueName: jobList}, cluster)
+    workloadGen.genWorkloadByList(queueName, copy.deepcopy(jobList))
+        
+    simulationStepCount = 0
+    while True:
+        if workloadGen.allJobsSubmitted() and len(scheduler.getAllApplications()) == 0:
+            break
+        
+        currentTime = simulationStepCount * Configuration.SIMULATION_STEP
+        workloadGen.submitJobs(currentTime, scheduler)
+        scheduler.activateWaitingJobs(currentTime)
+        
+        scheduler.oldSimulate(Configuration.SIMULATION_STEP, currentTime)
+        
+        simulationStepCount += 1
+        
+    makespan = simulationStepCount * Configuration.SIMULATION_STEP
+    finishedApp = scheduler.getFinishedAppsInfo()
+    return makespan, finishedApp
+
+        
+def scheduling(clusterSize, queueName, jobList, tradeoff):
     cluster = Cluster(clusterSize)
     #queueWorkloads = {"queue1": workloadSet}
     
     #print("fair")
-    fairScheduler =  YARNScheduler(cluster, True, 1.0)
-    fairScheduler.createQueue("queue1", "MULTIFAIR", True, "root")
+    scheduler =  YARNScheduler(cluster, True, tradeoff)
+    scheduler.createQueue("queue1", "MULTIFAIR", True, "root")
     
     workloadGen = WorkloadGenerator(Configuration.SIMULATION_PATH, Configuration.WORKLOAD_PATH, {queueName: jobList}, cluster)
     workloadGen.genWorkloadByList(queueName, copy.deepcopy(jobList))
@@ -64,59 +88,55 @@ def execSimulation(clusterSize, queueName, jobList):
     newLaunchQueue = multiprocessing.Queue()
     newAppsQueue = multiprocessing.Queue()
     completedQueue = multiprocessing.Queue()
+    e = multiprocessing.Event()
     
-    updateProcess = multiprocessing.Process(target = startService, name = "updateProcess", args = (fairScheduler, newLaunchQueue, newAppsQueue, completedQueue))
+    updateProcess = multiprocessing.Process(target = startNodaUpdateService, name = "updateProcess", args = (scheduler, newLaunchQueue, newAppsQueue, completedQueue, e))
     updateProcess.start()
         
     simulationStepCount = 0
     while True:
-        if workloadGen.allJobsSubmitted() and len(fairScheduler.getAllApplications()) == 0:
+        if workloadGen.allJobsSubmitted() and len(scheduler.getAllApplications()) == 0:
+            #notify the node update process ending
+            e.set()
             break
         
         currentTime = simulationStepCount * Configuration.SIMULATION_STEP
-        workloadGen.submitJobs(currentTime, fairScheduler)
-        addedApps = fairScheduler.activateWaitingJobs(currentTime)
+        workloadGen.submitJobs(currentTime, scheduler)
+        addedApps = scheduler.activateWaitingJobs(currentTime)
         if len(addedApps) > 0:
-            print("put new app")
+            #print("put new app")
             newAppsQueue.put(addedApps)
         
         while(not newLaunchQueue.empty()):
-            print("new receive container")
+            #print("new receive container")
             newContainer = newLaunchQueue.get()
-            fairScheduler.launchAllocatedContainer(newContainer["containerID"], newContainer["node"], newContainer["task"], newContainer["appID"])
+            scheduler.launchAllocatedContainer(newContainer["containerID"], newContainer["node"], newContainer["task"], newContainer["appID"])
         
-        fairScheduler.simulate(Configuration.SIMULATION_STEP, currentTime)
+        scheduler.simulate(Configuration.SIMULATION_STEP, currentTime)
 
-        for container in fairScheduler._completedContaienrList:
+        for container in scheduler._completedContaienrList:
             #print(container.getContainerID())
             completedQueue.put(container.getContainerID())
-        fairScheduler._completedContaienrList = []
+        scheduler._completedContaienrList = []
         
         simulationStepCount += 1
-        
-    fairMakespan = simulationStepCount * Configuration.SIMULATION_STEP
-    fairFinishedApp = fairScheduler.getFinishedAppsInfo()
     
-    #print("perf")
-    cluster = Cluster(clusterSize)
-    perfScheduler = YARNScheduler(cluster, True, 0.0)
-    perfScheduler.createQueue("queue1", "MULTIFAIR", True, "root")
+    # waiting for the end of node update process
+    updateProcess.join()
+        
+    makespan = simulationStepCount * Configuration.SIMULATION_STEP
+    finishedApp = scheduler.getFinishedAppsInfo()
+    return makespan, finishedApp
+
+
+def execSimulation(clusterSize, queueName, jobList, mode):
     
-    workloadGen = WorkloadGenerator(Configuration.SIMULATION_PATH, Configuration.WORKLOAD_PATH, {queueName: jobList}, cluster)
-    workloadGen.genWorkloadByList(queueName, copy.deepcopy(jobList))
-        
-    simulationStepCount = 0
-    while True:
-        if workloadGen.allJobsSubmitted() and len(perfScheduler.getAllApplications()) == 0:
-            break
-        #print(workloadGen.allJobsSubmitted(), len(fairScheduler.getAllApplications()))
-        currentTime = simulationStepCount * Configuration.SIMULATION_STEP
-        workloadGen.submitJobs(currentTime, perfScheduler)
-        perfScheduler.simulate(Configuration.SIMULATION_STEP, currentTime)
-        simulationStepCount += 1
-        
-    perfMakespan = simulationStepCount * Configuration.SIMULATION_STEP
-    perfFinishedApp = perfScheduler.getFinishedAppsInfo()
+    if mode == "new":
+        fairMakespan, fairFinishedApp = scheduling(clusterSize, queueName, jobList, 1.0)
+        perfMakespan, perfFinishedApp = scheduling(clusterSize, queueName, jobList, 0.0)
+    else:
+        fairMakespan, fairFinishedApp = oldScheduling(clusterSize, queueName, jobList, 1.0)
+        perfMakespan, perfFinishedApp = oldScheduling(clusterSize, queueName, jobList, 0.0)
     
     count = 0
     reduction = 0.0
@@ -269,12 +289,18 @@ def sortWindowBasedList(windowList):
     
 def genAverageEntropyByWindow(windowList):
     totalEntropy = 0
+    maxEntropy = 0
+    window = windowList[0]
     for w in windowList:
         entropy = Utility.calEntropyOfVectorList(w, 4)
         #print("entropy" + str(entropy))
         totalEntropy += entropy
+        if entropy > maxEntropy:
+            maxEntropy = entropy
+            window = w
     aveEn = float(totalEntropy) / len(windowList)
-    return aveEn
+    return maxEntropy, [window]
+    #return aveEn
 
 
 def genJobsAccordingCategoryList(categoryList):
@@ -301,7 +327,7 @@ def genJobsAccordingCategoryList(categoryList):
     return jobs
 
 
-def genAveragePerfFairForWindowList(windowList, clusterSize):
+def genAveragePerfFairForWindowList(windowList, clusterSize, mode):
     #print(windowList)
     avePerf = 0
     aveFair = 0
@@ -309,9 +335,9 @@ def genAveragePerfFairForWindowList(windowList, clusterSize):
     for w in windowList:
         #print(w)
         jobs = genJobsAccordingCategoryList(w)
-        print("exec simu start")
-        res = execSimulation(clusterSize, "queue1", jobs)
-        print("exec simu end")
+        #print("exec simu start")
+        res = execSimulation(clusterSize, "queue1", jobs, mode)
+        #print("exec simu end")
         count += 1
         avePerf += float(res["perf"])
         aveFair += float(res["fairness"])
@@ -355,7 +381,7 @@ def calAverageValueOfWindowBasedList(workloadScale = 10, windowSize = 10, repeat
         print i["entropy"], i["perf"], i["fairness"]
         
         
-def calAverageValueOfWindowBasedListForDiffClusterSize(workloadScale = 20, windowSize = 10, repeatNum = 3, swapInternal = 1, swapNum = 10, clusterSizeList = []):
+def calAverageValueOfWindowBasedListForDiffClusterSize(workloadScale = 20, windowSize = 10, repeatNum = 3, swapInternal = 1, swapNum = 10, clusterSizeList = [], mode = "new"):
     l = genJobCateList([1,2,3,4], workloadScale)
     windowNum = len(l) / windowSize
     w = genWindowBasedList(l, windowSize)
@@ -364,7 +390,7 @@ def calAverageValueOfWindowBasedListForDiffClusterSize(workloadScale = 20, windo
     
     swapList = []
     for i in range(swapNum + 1):
-        swapList.append( max(1, swapInternal * i))
+        swapList.append(swapInternal * i)
     
     for i in swapList:
         for j in range(repeatNum):
@@ -378,13 +404,17 @@ def calAverageValueOfWindowBasedListForDiffClusterSize(workloadScale = 20, windo
         beforeSwap = list(w)
         afterSwap = swapItemByWindow(beforeSwap, i, windowNum, windowSize)
         sortWindowBasedList(afterSwap)
-        e = genAverageEntropyByWindow(afterSwap)
-        print("entropy:" + str(float('%.1f'%e)))
+        e, chosenWindow = genAverageEntropyByWindow(afterSwap)
+        #e = genAverageEntropyByWindow(afterSwap)
+        #print("entropy:" + str(float('%.1f'%e)))
 
         for size in clusterSizeList:
-            perf, fairness = genAveragePerfFairForWindowList(afterSwap, size)
-            print("size: " + str(size))
-            print(perf, fairness)
+            #print("size: " + str(size))
+            #print(str(datetime.now()))
+            #perf, fairness = genAveragePerfFairForWindowList(afterSwap, size, mode)
+            perf, fairness = genAveragePerfFairForWindowList(chosenWindow, size, mode)
+            #print(perf, fairness)
+            #print(str(datetime.now()))
             resultForDifferentSize[size][0].setdefault(float('%.1f'%e), []).append(perf)
             resultForDifferentSize[size][1].setdefault(float('%.1f'%e), []).append(fairness)
             
@@ -424,9 +454,26 @@ if __name__ == '__main__':
         print "Entropy", "Perf", "Fairness"
         calAverageValueOfWindowBasedList(20, 10, 10, clusterSize)'''
     
-    #calAverageValueOfWindowBasedListForDiffClusterSize(24, 24, 10, 10, [1,2,4,6,8,10])
+    '''print(str(datetime.now()))
+    calAverageValueOfWindowBasedListForDiffClusterSize(24, 24, 1, 1, 10, [1,2,4,6,8,10], "new")
+    print(str(datetime.now()))'''
+    
+    #print(str(datetime.now()))
+    #calAverageValueOfWindowBasedListForDiffClusterSize(24, 24, 1, 1, 10, [1,2,4,6,8,10], "old")
+    #print(str(datetime.now()))
+    
     #calAverageValueOfWindowBasedListForDiffClusterSize(800, 800, 1, 60, 10, [100, 200, 400, 600, 800])
-    calAverageValueOfWindowBasedListForDiffClusterSize(10, 10, 1, 1, 10, [10])
+    #calAverageValueOfWindowBasedListForDiffClusterSize(500, 500, 1, 30, 10, [100, 200, 300, 400, 500])
+    
+    print("old")
+    print(str(datetime.now()))
+    calAverageValueOfWindowBasedListForDiffClusterSize(1000, 1000, 1, 70, 10, [100, 200, 300, 400, 500], "old")
+    print(str(datetime.now()))
+    
+    '''print("new")
+    print(str(datetime.now()))
+    calAverageValueOfWindowBasedListForDiffClusterSize(500, 500, 1, 30, 10, [100, 200, 300, 400, 500], "new")
+    print(str(datetime.now()))'''
     
     #print(Utility.calEntropyOfVectorList([1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4]))
     
