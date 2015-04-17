@@ -21,6 +21,7 @@ from RMContainerInfo import RMContainerInfo
 import copy
 import multiprocessing
 import time
+import math
 
 def startNodaUpdateService(scheduler, newLaunchQueue, newAppsQueue, completedQueue, e):
     # start node update thread
@@ -148,7 +149,7 @@ def execSimulation(clusterSize, queueName, jobList, mode):
             red = float(tPerf - tFair) / tFair
             reduction += red
             
-    return {"fairness": str(reduction / count), "perf": str(1 - min(float(perfMakespan) / fairMakespan, 1))}
+    return {"fairness": float(reduction) / count, "perf": 1 - min(float(perfMakespan) / fairMakespan, 1)}
 
 
 def genJob(num):
@@ -181,6 +182,7 @@ def genJobCateList(jobCate, num):
             l.append(jobCate[i])
             
     return l
+
         
 def swap(l, i, j):
     tmp = l[i]
@@ -261,23 +263,32 @@ def genLexiPermu(A, n):
     
     
 def swapItemByWindow(A, swapNum, windowNum, windowSize):
+    if windowNum == 1:
+        return A
+    
     for i in range(swapNum):
         r1 = randint(0, windowNum - 1)
-        r2 = randint(0, windowNum - 1)
+        r2 = r1
+        while (r2 == r1):
+            r2 = randint(0, windowNum - 1)
         w1 = A[r1]
         w2 = A[r2]
-        e1 = randint(0, windowSize - 1)
-        e2 = randint(0, windowSize - 1)
+        
+        e1 = randint(0, len(w1) - 1)
+        e2 = randint(0, len(w2) - 1)
         tmp = w1[e1]
         w1[e1] = w2[e2]
         w2[e2] = tmp
+        
     return A
 
 
-def genWindowBasedList(A, windowSize):
+def genWindowBasedList(A, windowSize, windowNum):
     w = []
-    for i in range(len(A) / windowSize):
-        w.append(A[i * windowSize : (i + 1) * windowSize])
+    for i in range(windowNum):
+        begin = i * windowSize
+        end = min(begin + windowSize, len(A))
+        w.append(A[begin:end])
         
     return w
 
@@ -303,9 +314,10 @@ def genAverageEntropyByWindow(windowList):
     #return aveEn
 
 
-def genJobsAccordingCategoryList(categoryList):
+def genJobsAccordingCategoryList(categoryList, workloadSet):
     jobs = []
-    fileName = Configuration.WORKLOAD_PATH + "workloadSet"
+    codes = []
+    fileName = Configuration.WORKLOAD_PATH + workloadSet
     f = open(fileName, "r")
     lines = f.readlines()
     f.close()
@@ -322,9 +334,24 @@ def genJobsAccordingCategoryList(categoryList):
         cpu = int(items[4])
         disk = int(items[5])
         network = int(items[6])
+        code = int(items[7])
         job = JobGenerator.genComputeIntensitveJob(str(jobCount), numOfTask, memory, cpu, disk, network, taskExecTime, submissionTime)
         jobs.append(job)
-    return jobs
+        codes.append(code)
+    return jobs, codes
+
+
+def genJobsOfWindowList(windowList, workloadSet):
+    result = []
+    size = len(windowList[0])
+    for w in windowList:
+        if len(w) != size:
+            break
+        jobs, codes = genJobsAccordingCategoryList(w, workloadSet)
+        entropy = Utility.calEntropyOfVectorList(codes, 4)
+        result.append({"jobs": jobs, "entropy": entropy})
+        
+    return result
 
 
 def genAveragePerfFairForWindowList(windowList, clusterSize, mode):
@@ -342,6 +369,11 @@ def genAveragePerfFairForWindowList(windowList, clusterSize, mode):
         avePerf += float(res["perf"])
         aveFair += float(res["fairness"])
     return avePerf / count, aveFair / count
+
+
+def scheduleOfJobList(jobList, clusterSize, mode):
+    res = execSimulation(clusterSize, "queue1", jobList, mode)
+    return res["perf"], res["fairness"]
 
 
 def calAverageValueOfWindowBasedList(workloadScale = 10, windowSize = 10, repeatNum = 5, swapNum = 10, clusterSize = 1):
@@ -381,11 +413,10 @@ def calAverageValueOfWindowBasedList(workloadScale = 10, windowSize = 10, repeat
         print i["entropy"], i["perf"], i["fairness"]
         
         
-def calAverageValueOfWindowBasedListForDiffClusterSize(workloadScale = 20, windowSize = 10, repeatNum = 3, swapInternal = 1, swapNum = 10, clusterSizeList = [], mode = "new"):
-    l = genJobCateList([1,2,3,4], workloadScale)
-    windowNum = len(l) / windowSize
-    w = genWindowBasedList(l, windowSize)
-    #swapNumList = [0]
+def calAverageValueOfWindowBasedListForDiffClusterSize(jobCateList, workloadScale, workloadSet, windowSize, repeatNum, swapInternal, swapNum, clusterSizeList = [], mode = "new"):
+    l = genJobCateList(jobCateList, workloadScale)
+    windowNum = int(math.ceil(float(len(l)) / windowSize))
+    w = genWindowBasedList(l, windowSize, windowNum)
     swapNumList = []
     
     swapList = []
@@ -404,15 +435,21 @@ def calAverageValueOfWindowBasedListForDiffClusterSize(workloadScale = 20, windo
         beforeSwap = list(w)
         afterSwap = swapItemByWindow(beforeSwap, i, windowNum, windowSize)
         sortWindowBasedList(afterSwap)
-        e, chosenWindow = genAverageEntropyByWindow(afterSwap)
+        #e, chosenWindow = genAverageEntropyByWindow(afterSwap)
         #e = genAverageEntropyByWindow(afterSwap)
+        #print("entropy:" + str(float('%.1f'%e)))
+        jobInfoOfWindowList = genJobsOfWindowList(afterSwap, workloadSet)
+        sortedJobInfo = sorted(jobInfoOfWindowList, key = lambda k: k["entropy"], reverse = True)
+        jobs = sortedJobInfo[0]["jobs"]
+        e = sortedJobInfo[0]["entropy"]
         #print("entropy:" + str(float('%.1f'%e)))
 
         for size in clusterSizeList:
             #print("size: " + str(size))
             #print(str(datetime.now()))
             #perf, fairness = genAveragePerfFairForWindowList(afterSwap, size, mode)
-            perf, fairness = genAveragePerfFairForWindowList(chosenWindow, size, mode)
+            #perf, fairness = genAveragePerfFairForWindowList(chosenWindow, size, mode)
+            perf, fairness = scheduleOfJobList(jobs, size, mode)
             #print(perf, fairness)
             #print(str(datetime.now()))
             resultForDifferentSize[size][0].setdefault(float('%.1f'%e), []).append(perf)
@@ -424,7 +461,7 @@ def calAverageValueOfWindowBasedListForDiffClusterSize(workloadScale = 20, windo
             result.append({"entropy": k, 
                        "perf": sum(resultForDifferentSize[size][0][k]) / len(resultForDifferentSize[size][0][k]), 
                        "fairness": sum(resultForDifferentSize[size][1][k]) / len(resultForDifferentSize[size][1][k])})
-            resultForDifferentSize[size][2] = sorted(result, key=lambda k: k['entropy'])
+        resultForDifferentSize[size][2] = sorted(result, key=lambda k: k['entropy'])
     
     for k, v in resultForDifferentSize.items():
         print("cluster size: " + str(k))
@@ -465,10 +502,10 @@ if __name__ == '__main__':
     #calAverageValueOfWindowBasedListForDiffClusterSize(800, 800, 1, 60, 10, [100, 200, 400, 600, 800])
     #calAverageValueOfWindowBasedListForDiffClusterSize(500, 500, 1, 30, 10, [100, 200, 300, 400, 500])
     
-    print("old")
+    '''print("old")
     print(str(datetime.now()))
-    calAverageValueOfWindowBasedListForDiffClusterSize(1000, 1000, 1, 70, 10, [100, 200, 300, 400, 500], "old")
-    print(str(datetime.now()))
+    calAverageValueOfWindowBasedListForDiffClusterSize(1000, 500, 1, 70, 10, [100, 200, 300, 400, 500], "old")
+    print(str(datetime.now()))'''
     
     '''print("new")
     print(str(datetime.now()))
@@ -485,3 +522,44 @@ if __name__ == '__main__':
         calAverageValueOfWindowBasedList(i["window"], 10, 10, i["cluster"])'''
     
     #calAverageValueOfWindowBasedList(24, 24, 10, 10, 6)
+    
+    # experiment 1
+    #calAverageValueOfWindowBasedListForDiffClusterSize(jobCateList, workloadScale, workloadSet, windowSize, repeatNum, swapInternal, swapNum, clusterSizeList = [], mode = "new"):
+    
+    print("workloadset1")
+    calAverageValueOfWindowBasedListForDiffClusterSize([1, 2, 3, 4], 1000, "workloadSet1", 1000, 1, 50, 10, [300], "old")
+    
+    print("workloadset2")
+    calAverageValueOfWindowBasedListForDiffClusterSize([1, 2, 3, 4], 2000, "workloadSet2", 2000, 1, 100, 10, [300], "old")
+    
+    print("workloadset3")
+    calAverageValueOfWindowBasedListForDiffClusterSize([1, 2, 3, 4, 5, 6, 7, 8], 1500, "workloadSet3", 1500, 1, 120, 10, [300], "old")
+    
+    print("workloadset5")
+    calAverageValueOfWindowBasedListForDiffClusterSize([1, 2, 3, 4, 5, 6, 7, 8], 1500, "workloadSet5", 1500, 1, 200, 10, [300], "old")
+    
+    print("workloadset4")
+    calAverageValueOfWindowBasedListForDiffClusterSize([1, 2, 3, 4, 5, 6, 7, 8], 1000, "workloadSet4", 1000, 1, 100, 10, [300], "old")
+    
+    # cluster size
+    print("workloadset1, varying cluster size")
+    calAverageValueOfWindowBasedListForDiffClusterSize([1, 2, 3, 4], 1000, "workloadSet1", 1000, 1, 50, 10, [100, 200, 300, 400, 500], "old")
+    
+    # window size
+    print("workloadSet1, window size")
+    print("window 500")
+    calAverageValueOfWindowBasedListForDiffClusterSize([1, 2, 3, 4], 1000, "workloadSet1", 500, 1, 50, 10, [300], "old")
+    
+    print("window 1500")
+    calAverageValueOfWindowBasedListForDiffClusterSize([1, 2, 3, 4], 1000, "workloadSet1", 1500, 1, 50, 10, [300], "old")
+    
+    print("window 2000")
+    calAverageValueOfWindowBasedListForDiffClusterSize([1, 2, 3, 4], 1000, "workloadSet1", 2000, 1, 50, 10, [300], "old")
+    
+    print("window 3000")
+    calAverageValueOfWindowBasedListForDiffClusterSize([1, 2, 3, 4], 1000, "workloadSet1", 3000, 1, 20, 5, [300], "old")
+    
+    print("window 4000")
+    calAverageValueOfWindowBasedListForDiffClusterSize([1, 2, 3, 4], 1000, "workloadSet1", 4000, 1, 20, 0, [300], "old")
+    
+    #calAverageValueOfWindowBasedListForDiffClusterSize([1, 2, 3, 4], 24, "workloadSet", 24, 1, 2, 10, [1,2,4,6,8,10], "old")
