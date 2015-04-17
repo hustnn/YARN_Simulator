@@ -526,6 +526,7 @@ if __name__ == '__main__':
     # experiment 1
     #calAverageValueOfWindowBasedListForDiffClusterSize(jobCateList, workloadScale, workloadSet, windowSize, repeatNum, swapInternal, swapNum, clusterSizeList = [], mode = "new"):
     
+    
     print("workloadset1")
     calAverageValueOfWindowBasedListForDiffClusterSize([1, 2, 3, 4], 1000, "workloadSet1", 1000, 1, 50, 10, [300], "old")
     
@@ -540,6 +541,9 @@ if __name__ == '__main__':
     
     print("workloadset4")
     calAverageValueOfWindowBasedListForDiffClusterSize([1, 2, 3, 4, 5, 6, 7, 8], 1000, "workloadSet4", 1000, 1, 100, 10, [300], "old")
+    
+    print("workloadset6")
+    calAverageValueOfWindowBasedListForDiffClusterSize([1, 2, 3, 4], 1500, "workloadSet6", 1500, 1, 50, 10, [300], "old")
     
     # cluster size
     print("workloadset1, varying cluster size")
