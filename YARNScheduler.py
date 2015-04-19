@@ -219,6 +219,31 @@ class YARNScheduler(object):
                         
                         if not assignedContainer:
                             break
+                elif self._schedulingMode == "dynamic":
+                    windowSize = 0
+                    allApplications = self._rootQueue.getAllAppSchedulables()
+                    applications = [app for app in allApplications if not Resources.equals(app.getCurrentResourceDemand(), Resources.none())]
+                    #fairPolicyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
+                    #applications.sort(fairPolicyCmp)
+                    appsInOneWindow = applications[0: min(windowSize, len(applications))]
+                    if len(appsInOneWindow) == 0:
+                        break
+                    resVectorList = []
+                    for app in appsInOneWindow:
+                        demand = app.getCurrentResourceDemand()
+                        if not Resources.equals(demand, Resources.none()):
+                            resVectorList.append(demand.getResourceVector())
+                            
+                    entropy = Utility.calEntropyOfVectorList(resVectorList)
+                    policyCmp = ""
+                    appsInOneWindow.sort(self._batchPolicyCmp)
+                    app = appsInOneWindow[0]
+                    assignedResource = app.assignContainer(node)
+                    if Resources.greaterAtLeastOne(assignedResource, Resources.none()):
+                        assignedContainer = True
+                        
+                    if not assignedContainer:
+                        break
                 elif self._schedulingMode == "batch":
                     #batch scheduling, if batch scheduling list is empty, select k jobs (batch size) accroding to fairness
                     #decide the scheduling policy using rules
