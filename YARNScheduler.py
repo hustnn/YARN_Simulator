@@ -220,27 +220,40 @@ class YARNScheduler(object):
                         if not assignedContainer:
                             break
                 elif self._schedulingMode == "dynamic":
-                    windowSize = 0
-                    allApplications = self._rootQueue.getAllAppSchedulables()
-                    applications = [app for app in allApplications if not Resources.equals(app.getCurrentResourceDemand(), Resources.none())]
-                    #fairPolicyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
-                    #applications.sort(fairPolicyCmp)
-                    appsInOneWindow = applications[0: min(windowSize, len(applications))]
-                    if len(appsInOneWindow) == 0:
-                        break
-                    resVectorList = []
-                    for app in appsInOneWindow:
-                        demand = app.getCurrentResourceDemand()
-                        if not Resources.equals(demand, Resources.none()):
-                            resVectorList.append(demand.getResourceVector())
-                            
-                    entropy = Utility.calEntropyOfVectorList(resVectorList)
-                    policyCmp = ""
-                    appsInOneWindow.sort(self._batchPolicyCmp)
-                    app = appsInOneWindow[0]
-                    assignedResource = app.assignContainer(node)
-                    if Resources.greaterAtLeastOne(assignedResource, Resources.none()):
-                        assignedContainer = True
+                    windowSize = 400
+                    #print(len(self._appsScheduledInCurBatch))
+                    if len(self._appsScheduledInCurBatch) == 0:
+                        allApplications = self._rootQueue.getAllAppSchedulables()
+                        applications = [app for app in allApplications if not Resources.equals(app.getCurrentResourceDemand(), Resources.none())]
+                        self._appsScheduledInCurBatch = applications[0: min(windowSize, len(applications))]
+                        #print(len(self._appsScheduledInCurBatch))
+                        if len(self._appsScheduledInCurBatch) == 0:
+                            break
+                        resVectorList = []
+                        for app in self._appsScheduledInCurBatch:
+                            demand = app.getCurrentResourceDemand()
+                            if not Resources.equals(demand, Resources.none()):
+                                resVectorList.append(demand.getResourceVector())
+                        
+                        #print(resVectorList)
+                        entropy = Utility.calEntropyOfResourceVectorList(resVectorList)
+                        #print("entropy:" + str(entropy))
+                        if entropy >= 2:
+                            self._batchPolicy = "perf"
+                            self._batchPolicyCmp = PolicyParser.getInstance("MRF", self._clusterCapacity).getComparator()
+                        else:
+                            self._batchPolicy = "fair"
+                            self._batchPolicyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
+                    
+                    if len(self._appsScheduledInCurBatch) > 0:
+                        self._appsScheduledInCurBatch.sort(PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator())
+                        self._appsScheduledInCurBatch.sort(self._batchPolicyCmp)
+                        app = self._appsScheduledInCurBatch[0]
+                        assignedResource = app.assignContainer(node)
+                        if Resources.equals(app.getCurrentResourceDemand(), Resources.none()):
+                            self._appsScheduledInCurBatch.remove(app)
+                        if Resources.greaterAtLeastOne(assignedResource, Resources.none()):
+                            assignedContainer = True
                         
                     if not assignedContainer:
                         break

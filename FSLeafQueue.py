@@ -88,8 +88,9 @@ class FSLeafQueue(FSQueue):
         
         # first, sort by current policy
         self._appScheds.sort(self._policy.getComparator())
-        #for app in self._appScheds:
-        #    print(app.getApp().getApplicationID(), str(app.getResourceUsage()), str(app.getStartTime()))
+        '''print("fairness")
+        for app in self._appScheds:
+            print(app.getApp().getApplicationID())'''
             
         #if selectivity > 1:
         #    pass
@@ -100,7 +101,8 @@ class FSLeafQueue(FSQueue):
         # thitd, sort selected list by fitness
         multiResFitnessComparator = PolicyParser.getInstance("MRF", self._scheduler.getClusterCapacity()).getComparator()
         selectedApps.sort(multiResFitnessComparator)
-        '''for app in selectedApps:
+        '''print("similarity")
+        for app in selectedApps:
             print(app.getApp().getApplicationID())
         print("\n")'''
         

@@ -105,6 +105,43 @@ class Utility(object):
         return cls.calEntropy(probDis)
     
     
+    @classmethod
+    def calEntropyOfResourceVectorList(cls, vectorList, vectorQuantinationNum = 4):  
+        #print(vectorList)  
+        #dict4 = {(6, 1, 1, 1): 0, (2, 1, 1, 1): 0, (1, 6, 1, 1): 1, (1, 2, 1, 1): 1, (1, 1, 6, 1): 2, (1, 1, 2, 1): 2, (1, 1, 1, 6): 3, (1, 1, 1, 2): 3}
+        #dict8 = {(6, 1, 1, 1): 0, (3, 1, 1, 1): 1, (1, 6, 1, 1): 2, (1, 3, 1, 1): 3, (1, 1, 6, 1): 4, (1, 1, 3, 1): 5, (1, 1, 1, 6): 6, (1, 1, 1, 3): 7}
+        code = []
+        resToCodeMappint = {(6, 1, 1, 1): 1, (1, 6, 1, 1): 2, (1, 1, 6, 1): 3, (1, 1, 1, 6): 4}
+        for v in vectorList:
+            code.append(resToCodeMappint[tuple(v)])
+        
+        '''resVectorArray = numpy.asarray(vectorList)
+        r, d = kmeans(resVectorArray, vectorQuantinationNum, 1000)
+        (code, distor) = vq(resVectorArray, r)'''
+        
+        #print(code)
+        '''code = []
+        for v in vectorList:
+            if vectorQuantinationNum == 4:
+                code.append(dict4[tuple(v)])
+            else:
+                code.append(dict8[tuple(v)])'''
+        #print(code)
+        
+        distributions = {}
+        for n in code:
+            if n in distributions.keys():
+                distributions[n] = distributions[n] + 1
+            else:
+                distributions[n] = 1
+        
+        totalCount = len(code)
+        probDis = {}
+        for k, v in distributions.items():
+            probDis[k] = float(v) / totalCount
+        return cls.calEntropy(probDis)
+    
+    
     @staticmethod
     def calEntropy(probDict):
         s = 0
