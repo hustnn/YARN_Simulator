@@ -26,8 +26,9 @@ class MultipleResourceFitnessPolicy(SchedulingPolicy):
         s2Fitness = s2.getMultiResFitness()
         
         res = s2Fitness - s1Fitness
-        if abs(res) <= 0.01:
-            res = 0
+        
+        #if abs(res) <= 0.01:
+        #    res = 0
         
         return Utility.sign(res)
     
