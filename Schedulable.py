@@ -68,3 +68,8 @@ class Schedulable(object):
     @abc.abstractmethod
     def getMultiResFitness(self):
         return
+    
+    
+    @abc.abstractmethod
+    def getResEntropy(self):
+        return

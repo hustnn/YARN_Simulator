@@ -19,6 +19,8 @@ import math
 import time
 from random import randint
 
+from sklearn import tree
+
 class YARNScheduler(object):
     '''
     classdocs
@@ -46,7 +48,7 @@ class YARNScheduler(object):
         self._tradeoff = tradeoff
         self._similarityType = similarityType
         self._finishedApps = []
-        
+    
         # scheduling model
         self._schedulingMode = schedulingMode
         self._randomFactor = randomFactor
@@ -56,6 +58,8 @@ class YARNScheduler(object):
         self._entropyOfLastBatch = 0
         self._appsScheduledInCurBatch = []
         self._appsScheduledInLastBatch = []
+        self._appsInSlidingWindow = []
+        self._policyOfSlidingWindow = "F"
         self._batchPolicy = "fair"
         self._batchPolicyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
         self._feedbackWaitThreshold = cluster.getClusterSize()
@@ -170,6 +174,15 @@ class YARNScheduler(object):
         queue.removeApp(app)
         
         
+    def setSlidingWindowSize(self, size):
+        self._slidingWindowSize = size
+        
+        
+    def trainDecisionTreeClassifier(self, dataList, labelList):
+        self._dtclf = tree.DecisionTreeClassifier()
+        self._dtclf = self._dtclf.fit(dataList, labelList)
+        
+        
     def nodeUpdate(self, node):
         # assign new containers
         # 1. check for reserved applications
@@ -186,6 +199,7 @@ class YARNScheduler(object):
                     break
                 
                 self.calMultiResourceFitness(self._rootQueue, node)
+                self.calResourceEntroy(self._rootQueue, node)
                 
                 #default hadoop scheduling algorithm: call parent queue assign container method, and then leaf queue assign container method
                 if self._schedulingMode == "default":
@@ -238,7 +252,7 @@ class YARNScheduler(object):
                         #print(resVectorList)
                         entropy = Utility.calEntropyOfResourceVectorList(resVectorList)
                         #print("entropy:" + str(entropy))
-                        if entropy >= 2:
+                        if entropy >= self._tradeoff:
                             self._batchPolicy = "perf"
                             self._batchPolicyCmp = PolicyParser.getInstance("MRF", self._clusterCapacity).getComparator()
                         else:
@@ -255,6 +269,39 @@ class YARNScheduler(object):
                         if Resources.greaterAtLeastOne(assignedResource, Resources.none()):
                             assignedContainer = True
                         
+                    if not assignedContainer:
+                        break
+                elif self._schedulingMode == "sliding":
+                    if self._slidingWindowSize != None:
+                        slidingWindowSize = self._slidingWindowSize
+                    else:
+                        slidingWindowSize = 4 * self._cluster.getClusterSize()
+                        
+                    #if len(self._appsInSlidingWindow) < slidingWindowSize:
+                    self._appsInSlidingWindow = []
+                    applications = self._rootQueue.getAllAppSchedulables()
+                    appsToAdd = [app for app in applications if app not in self._appsInSlidingWindow and app.getCurrentResourceDemand() != Resources.none()]
+                    fairPolicyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
+                    appsToAdd.sort(fairPolicyCmp)
+                    numToAdd = min(slidingWindowSize - len(self._appsInSlidingWindow), len(appsToAdd))
+                    for app in appsToAdd[:numToAdd]:
+                        self._appsInSlidingWindow.append(app)
+                    # decide the proper policy for the jobs in the sliding window
+                        
+                    if self._policyOfSlidingWindow == "P":
+                        policyCmp = PolicyParser.getInstance("MRE", self._clusterCapacity).getComparator()
+                    else:
+                        policyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
+                        
+                    if len(self._appsInSlidingWindow) > 0:
+                        self._appsInSlidingWindow.sort(PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator())
+                        if self._policyOfSlidingWindow == "P":
+                            self._appsInSlidingWindow.sort(policyCmp)
+                        app = self._appsInSlidingWindow[0]
+                        assignedResource = app.assignContainer(node)
+                        if Resources.greaterAtLeastOne(assignedResource, Resources.none()):
+                            assignedContainer = True
+                    
                     if not assignedContainer:
                         break
                 elif self._schedulingMode == "batch":
@@ -307,9 +354,6 @@ class YARNScheduler(object):
                         else:
                             self._batchPolicy = "fair"
                             self._batchPolicyCmp = PolicyParser.getInstance("MULTIFAIR", self._clusterCapacity).getComparator()
-                        #print("entropy: " + str(entropy) + ", " + "policy: " + self._batchPolicy)
-                        
-                        #print(self._currentTime, waitingSign, self._batchPolicy, self._entropyThreshold, entropy)
                     
                     if len(self._appsScheduledInCurBatch) > 0:
                         # this batch ends until all jobs are scheduled for one time
@@ -390,6 +434,20 @@ class YARNScheduler(object):
             self.removeApplication(app)
             app.getJob().setFinishTime(currentTime + step)
             self._finishedApps.append(app)
+            
+            
+    def resourceAllocateSimulate(self):
+        self.update()
+        
+        for node in self._cluster.getAllNodes():
+            self.nodeUpdate(node)
+            
+        apps = self.getAllApplications()
+        appsDict = {}
+        for app in apps:
+            appsDict[app.getApplicationID()] = app.getCurrentConsumption().getDominantResource()
+            
+        return appsDict
             
             
     def oldSimulate(self, step, currentTime):
@@ -508,6 +566,30 @@ class YARNScheduler(object):
         #print("task schedule end")
         self.updateStatusAfterScheduling(step, currentTime)
         
+        
+    def calResourceEntroy(self, queue, node):
+        maxResEntropy = -1.0
+        if type(queue) is FSLeafQueue:
+            apps = queue.getAppSchedulables()
+            
+            for app in apps:
+                app.calResEntropy(node)
+                resEntropy = app.getResEntropy()
+                if resEntropy > maxResEntropy:
+                    maxResEntropy = resEntropy
+                    
+            queue.setResEntropy(maxResEntropy)
+        else:
+            childQueues = queue.getChildQueues()
+            
+            for child in childQueues:
+                self.calResourceEntroy(child, node)
+                resEntropy = child.getResEntropy()
+                if resEntropy > maxResEntropy:
+                    maxResEntropy = resEntropy
+                    
+            queue.setResEntropy(maxResEntropy)
+            
         
     def calMultiResourceFitness(self, queue, node):
         comparator = queue.getPolicy().getComparator()

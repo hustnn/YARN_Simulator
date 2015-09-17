@@ -9,6 +9,7 @@ from Resources import Resources
 from RMContainerInfo import RMContainerInfo
 from SchedulableStatus import SchedulableStatus
 from SimilarityType import SimilarityType
+from Utility import Utility
 import Configuration
 
 
@@ -29,6 +30,7 @@ class AppSchedulable(Schedulable):
         self._startTime = scheduler.getCurrentTime()
         self._demand = Resources.createResource(0, 0, 0, 0)
         self._multipleResourceFitness = -1.0
+        self._resourceEntropy = -1.0
         self._blockCount = 0
         
         
@@ -84,12 +86,14 @@ class AppSchedulable(Schedulable):
         requests = self._app.getResourceRequests(priority)
         if len(requests) == 0:
             return False
+        else:
+            return True
         
-        for task in requests:
+        '''for task in requests:
             if Resources.allFitIn(task.getResource(), node.getCapacity()):
                 return True
             
-        return False
+        return False'''
     
     
     def taskFitsInNode(self, task, node):
@@ -192,6 +196,36 @@ class AppSchedulable(Schedulable):
     
     def getMultiResFitness(self):
         return self._multipleResourceFitness
+    
+    
+    def getResEntropy(self):
+        return self._resourceEntropy
+    
+    
+    def calResEntropy(self, node):
+        currentRunningContainer = node.getRunningContainers()
+        runningDominantResList = []
+        for container in currentRunningContainer:
+            runningDominantResList.append(container.getTask().getResource().getDominantResource())
+            
+        entropy = -1.0
+        
+        priorities = self._app.getPriorities()
+        for priority in priorities:
+            if not self.hasContainerForNode(priority, node):
+                continue
+            
+            tasks = self._app.getResourceRequests(priority)
+            #if len(tasks) > 0:
+            task = tasks[0]
+            if Resources.allFitIn(task.getResource(), node.getAvailableResource()):
+                dominantResList = runningDominantResList[:]
+                dominantResList.append(task.getResource().getDominantResource())
+                entropy = Utility.calEntropyOfVectorList(dominantResList)
+                
+            break
+            
+        self._resourceEntropy = entropy 
             
             
     def calMultiResFitness(self, node, similarityType = SimilarityType.PRODUCT):

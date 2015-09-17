@@ -10,9 +10,9 @@ from Utility import Utility
 
 from numpy import *
 from pylab import *
-from matplotlib import rc, rcParams
+#from matplotlib import rc, rcParams
 # Pyplot is a module within the matplotlib library for plotting
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import copy
 import sys
 

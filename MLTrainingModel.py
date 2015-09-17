@@ -36,8 +36,10 @@ def genJobCategoryList(num, prob):
     return res
 
 
-def getEntropyOfList(v):
-    return Utility.calEntropyOfVectorList(v)
+def getEntropyOfList(v, percentage = 1.0):
+    length = int(len(v) * float(percentage))
+    entropy = Utility.calEntropyOfVectorList(v[:length]) 
+    return float("{0:.1f}".format(entropy))
 
 
 def JobListSizeToClusterSize(jobSize, clusterSize):
@@ -105,7 +107,7 @@ def genJobsAccordingCategoryList(jobCategoryList, dominantRes, dominantDegree):
     for category in jobCategoryList:
         resVector = [1, 1, 1, 1]
         resVector[category - 1] = dominantRes[category - 1][dominantDegree]
-        job = JobGenerator.genComputeIntensitveJob(str(jobCount), 100, resVector[0], resVector[1], resVector[2], resVector[3], 1, 0)
+        job = JobGenerator.genComputeIntensitveJob(str(jobCount), 200, resVector[0], resVector[1], resVector[2], resVector[3], 1, 0)
         jobs.append(job)
         jobCount += 1
         
@@ -163,12 +165,16 @@ def calFairnessLoss(appsFair, appsPerf):
     for appID in appsFair.keys():
         if appsPerf[appID] < appsFair[appID]:
             numOfUnfairApps += 1
-            fairnessLoss = float(appsFair[appID] - appsPerf[appID]) / appsFair[appID]
+            fairnessLoss += float(appsFair[appID] - appsPerf[appID]) / appsFair[appID]
             
-    if numOfUnfairApps == 0:
-        return 0, 0
+    '''if numOfUnfairApps == 0:
+        return 0, 0, 0
     else:
-        return int(float(numOfUnfairApps) / totalNumOfApps * 100), int(fairnessLoss / numOfUnfairApps * 100)
+        return int(float(numOfUnfairApps) / totalNumOfApps * 100), int(float(fairnessLoss) / numOfUnfairApps * 100), int(float(fairnessLoss) / totalNumOfApps * 100)'''
+    if numOfUnfairApps == 0:
+        return 0
+    else:
+        return int(math.ceil(float(fairnessLoss) / totalNumOfApps * 100))
     
     
 def normalizeFairnessLoss(loss):
@@ -192,23 +198,27 @@ if __name__ == '__main__':
     percentageLoss, aveLoss = calFairnessLoss(appsFair, appsPerf)
     print(percentageLoss, aveLoss)'''
     
-    numOfJobList = [100, 200, 400, 600]
+    numOfJobList = [100, 200, 300, 400, 500]
     distributionList = [1, 0.9, 0.8, 0.6, 0.5, 0.25]
-    clusterSizeList = [50, 100, 200, 300]
+    clusterSizeList = [50, 100, 200]
     dominantDegreeList = [0, 1, 2]
     swapNumList = [0, 10, 50, 100, 200]
-    percentageLossList = [0, 10, 20, 30, 40, 50]
-    aveLossList = [0, 10, 20, 30, 40, 50]
+    percentageLossList = [0, 5, 10, 15, 20, 25, 30, 35, 40]
+    aveLossList = [0, 5, 10, 15, 20, 25, 30, 35, 40]
     
     filename = Configuration.WORKLOAD_PATH + "trainingModel"
     f = open(filename, "w")
-    f.write("entropy,normJobSize,normCon,disPos1,disPos2,disPos3,dominantDegree,normPerLoss,normAveLoss,policy\n")
+    f.write("entropy,entropy80,entropy60,entropy40,entropy20,normJobSize,normCon,disPos1,disPos2,disPos3,dominantDegree,predAveLoss,aveLoss,policy\n")
     
     print("begin...")
     for jobNum in numOfJobList:
         for prob in distributionList:
             jobCategoryList = genJobCategoryList(jobNum, prob)
             entropy = getEntropyOfList(jobCategoryList)
+            entropy20 = getEntropyOfList(jobCategoryList, 0.2)
+            entropy40 = getEntropyOfList(jobCategoryList, 0.4)
+            entropy60 = getEntropyOfList(jobCategoryList, 0.6)
+            entropy80 = getEntropyOfList(jobCategoryList, 0.8)
             for clusterSize in clusterSizeList:
                 normJobSize = JobListSizeToClusterSize(jobNum, clusterSize)
                 for swapNum in swapNumList:
@@ -222,7 +232,20 @@ if __name__ == '__main__':
                         jobs = genJobsAccordingCategoryList(jobCategoryListAfterSwap, dominantRes, dominantDegree)
                         appsFair = fairAllocation(clusterSize, "queue1", jobs)
                         appsPerf = perfAllocation(clusterSize, "queue1", jobs)
-                        percentageLoss, aveLoss = calFairnessLoss(appsFair, appsPerf)
+                        aveLoss = calFairnessLoss(appsFair, appsPerf)
+                        #normAveLoss = normalizeFairnessLoss(aveLoss)
+                        for al in aveLossList:
+                            #nal = normalizeFairnessLoss(al)
+                            if aveLoss <= al:
+                                policy = "P"
+                            else:
+                                policy = "F"
+                            feature = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" % (str(entropy), str(entropy80), str(entropy60), str(entropy40), str(entropy20), 
+                                                                                             str(normJobSize), str(normContineousCount), str(disPos1), str(disPos2),str(disPos3), 
+                                                                                             str(dominantDegree), str(aveLoss), str(al), str(policy))
+                            f.write(feature)
+                            f.flush()
+                        '''percentageLoss, aveLoss = calFairnessLoss(appsFair, appsPerf)
                         normPercentageLoss = normalizeFairnessLoss(percentageLoss)
                         normAveLoss = normalizeFairnessLoss(aveLoss)
                         for pl in percentageLossList:
@@ -233,11 +256,10 @@ if __name__ == '__main__':
                                     policy = "P"
                                 else:
                                     policy = "F"
-                                feature = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" % (str(entropy), str(normJobSize), str(normContineousCount), str(disPos1), str(disPos2),
-                                                                             str(disPos3), str(dominantDegree), str(npl), str(nal), str(policy))
-                                #print(feature)
-                                f.write(feature)
-                                #time.sleep(1)
+                                feature = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" % (str(entropy), str(entropy80), str(entropy60), str(entropy40), str(entropy20), 
+                                                                                                 str(normJobSize), str(normContineousCount), str(disPos1), str(disPos2),str(disPos3), 
+                                                                                                 str(dominantDegree), str(normPercentageLoss), str(normAveLoss), str(npl), str(nal), str(policy))
+                                f.write(feature)'''
                                 
     f.close()
     print("end")

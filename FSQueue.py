@@ -21,6 +21,7 @@ class FSQueue(Schedulable):
         self._policy = None
         self._maxApps = sys.maxint
         self._bestMulResFitness = -1.0
+        self._bestResourceEntropy = -1.0
         
         
     def setMaxApps(self, num):
@@ -50,6 +51,14 @@ class FSQueue(Schedulable):
     def getMultiResFitness(self):
         return self._bestMulResFitness
     
+    
+    def setResEntropy(self, entropy):
+        self._bestResourceEntropy = entropy
+        
+        
+    def getResEntropy(self):
+        return self._bestResourceEntropy
+        
     
     @abc.abstractmethod
     def recomputeShares(self):

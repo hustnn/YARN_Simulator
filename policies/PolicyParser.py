@@ -9,6 +9,7 @@ from MultipleResourceFitnessPolicy import MultipleResourceFitnessPolicy
 from FairSharePolicy import FairSharePolicy
 from DominantResourceFairnessPolicy import DominantResourceFairnessPolicy
 from MultipleResourceFairnessPolicy import MultipleResourceFairnessPolicy
+from MaxResourceEntropyPolicy import MaxResourceEntropyPolicy
 
 
 class PolicyParser(object):
@@ -30,6 +31,8 @@ class PolicyParser(object):
                 policyInstance = MultipleResourceFitnessPolicy()
             elif (text == MultipleResourceFairnessPolicy.NAME.lower()):
                 policyInstance = MultipleResourceFairnessPolicy()
+            elif (text == MaxResourceEntropyPolicy.NAME.lower()):
+                policyInstance = MaxResourceEntropyPolicy()
             else:
                 policyInstance = FairSharePolicy()
                 

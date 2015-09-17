@@ -63,3 +63,8 @@ class Resource(object):
     def getResourceVector(self):
         return [self._memory, self._cpu, self._disk, self._network]
     
+    
+    def getDominantResource(self):
+        vec = self.getResourceVector()
+        return max(vec)
+    
