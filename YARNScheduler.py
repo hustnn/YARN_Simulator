@@ -193,13 +193,14 @@ class YARNScheduler(object):
             # no reservation, schedule at queue which is farthest below fair share
             while node.getReservedContainer() == None:
                 assignedContainer = False
-                #if node.getAvailableResource() == Resources.none() and len(self._applications) == 0:
-                #    break
                 if not Resources.allAvailable(node.getAvailableResource()) or len(self._applications) == 0:
                     break
                 
                 self.calMultiResourceFitness(self._rootQueue, node)
-                self.calResourceEntroy(self._rootQueue, node)
+                
+                #for performance optimization, we use the vector similarity rather than the maximizing the entropy, so
+                # we do not need to calculate the resource entropy anymore
+                #self.calResourceEntroy(self._rootQueue, node)
                 
                 #default hadoop scheduling algorithm: call parent queue assign container method, and then leaf queue assign container method
                 if self._schedulingMode == "default":
@@ -235,12 +236,11 @@ class YARNScheduler(object):
                             break
                 elif self._schedulingMode == "dynamic":
                     windowSize = 400
-                    #print(len(self._appsScheduledInCurBatch))
                     if len(self._appsScheduledInCurBatch) == 0:
                         allApplications = self._rootQueue.getAllAppSchedulables()
+                        #only consider applications have resource demand
                         applications = [app for app in allApplications if not Resources.equals(app.getCurrentResourceDemand(), Resources.none())]
                         self._appsScheduledInCurBatch = applications[0: min(windowSize, len(applications))]
-                        #print(len(self._appsScheduledInCurBatch))
                         if len(self._appsScheduledInCurBatch) == 0:
                             break
                         resVectorList = []
@@ -249,9 +249,8 @@ class YARNScheduler(object):
                             if not Resources.equals(demand, Resources.none()):
                                 resVectorList.append(demand.getResourceVector())
                         
-                        #print(resVectorList)
                         entropy = Utility.calEntropyOfResourceVectorList(resVectorList)
-                        #print("entropy:" + str(entropy))
+
                         if entropy >= self._tradeoff:
                             self._batchPolicy = "perf"
                             self._batchPolicyCmp = PolicyParser.getInstance("MRF", self._clusterCapacity).getComparator()
@@ -449,7 +448,8 @@ class YARNScheduler(object):
             
         return appsDict
             
-            
+    
+    # default simulation approach which integrate the node update (task/job allocation) with the task/job execution
     def oldSimulate(self, step, currentTime):
         self._currentTime = currentTime
         
@@ -491,7 +491,8 @@ class YARNScheduler(object):
         self.schedule(step)
         self.updateStatusAfterScheduling(step, currentTime)
         
-        
+    
+    # new simulation approach which separate the task\job allocation from the task\job execution by using multi-threading
     def simulate(self, step, currentTime):
         self._currentTime = currentTime
         #self.activateWaitingJobs(currentTime)

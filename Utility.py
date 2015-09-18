@@ -4,9 +4,9 @@ Created on Jan 16, 2015
 @author: zhaojie
 '''
 
-#import numpy
-#from numpy import array
-#from scipy.cluster.vq import vq, kmeans, whiten, kmeans2
+import numpy
+from numpy import array
+from scipy.cluster.vq import vq, kmeans, whiten, kmeans2
 
 from Resources import Resources
 
@@ -40,8 +40,9 @@ class Utility(object):
                 return -1
             else:
                 return 1
+            
     
-    '''@classmethod
+    @classmethod
     def calEntropyOfWorkload(cls, apps, vectorQuantinationNum):
         resVectorList = []
         for app in apps:
@@ -68,7 +69,7 @@ class Utility(object):
         for k, v in distributions.items():
             probDis[k] = float(v) / totalCount
         
-        return cls.calEntropy(probDis)'''
+        return cls.calEntropy(probDis)
     
     
     @classmethod
@@ -111,9 +112,14 @@ class Utility(object):
         #dict4 = {(6, 1, 1, 1): 0, (2, 1, 1, 1): 0, (1, 6, 1, 1): 1, (1, 2, 1, 1): 1, (1, 1, 6, 1): 2, (1, 1, 2, 1): 2, (1, 1, 1, 6): 3, (1, 1, 1, 2): 3}
         #dict8 = {(6, 1, 1, 1): 0, (3, 1, 1, 1): 1, (1, 6, 1, 1): 2, (1, 3, 1, 1): 3, (1, 1, 6, 1): 4, (1, 1, 3, 1): 5, (1, 1, 1, 6): 6, (1, 1, 1, 3): 7}
         code = []
+        #mapping normalized resource vector list to category
+        for resVector in vectorList:
+            code.append(cls.calEntropy(resVector))
+        
+        '''
         resToCodeMappint = {(6, 1, 1, 1): 1, (1, 6, 1, 1): 2, (1, 1, 6, 1): 3, (1, 1, 1, 6): 4}
         for v in vectorList:
-            code.append(resToCodeMappint[tuple(v)])
+            code.append(resToCodeMappint[tuple(v)])'''
         
         '''resVectorArray = numpy.asarray(vectorList)
         r, d = kmeans(resVectorArray, vectorQuantinationNum, 1000)
@@ -150,3 +156,8 @@ class Utility(object):
                 s += p * math.log(float(1) / p) / math.log(2)
         
         return s
+    
+    
+    @staticmethod
+    def getIndexOfDominantResource(normalizedResVector):
+        return normalizedResVector.index(max(normalizedResVector))
