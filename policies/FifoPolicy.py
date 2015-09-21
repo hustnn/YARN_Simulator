@@ -18,7 +18,6 @@ class FifoPolicy(SchedulingPolicy):
     classdocs
     '''
 
-
     NAME = "FIFO"
     
     
