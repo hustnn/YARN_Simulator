@@ -15,6 +15,7 @@ from JobGenerator import JobGenerator
 from Utility import Utility
 
 
+
 # generate training dataset used by decision tree, (entropy of workload, fairness SLA, performance)
 # the best performance corresponds to the target scheduler
 def calTrainingData(workloadScale = 10, windowSize = 10):
@@ -139,24 +140,25 @@ def genJobs(jobTypeList, jobInfoList):
     return jobs, entropy
 
 
-def execSimulation(clusterSize, queueName, jobList, policy, baselineFinishedApp = None, baselineMakespan = None):
+def execSimulation(clusterSize, queueName, jobList, policy):
     makespan, finishedApp = schedule(clusterSize, queueName, jobList, policy)
-    if baselineFinishedApp == None:
-        return finishedApp, makespan
-    
+    return finishedApp, makespan
+
+
+def compareMakespanAndFairness(finishedApps1, makespan1, finishedApps2, makespan2):
     count = 0
     reduction = 0.0
-    for k in finishedApp.keys():
-        count + 1
-        finishTimeOfCurApp = finishedApp[k]
-        finishTimeOfBaseApp = baselineFinishedApp[k]
+    for k in finishedApps1.keys():
+        count += 1
+        finishTimeOfCurApp = finishedApps1[k]
+        finishTimeOfBaseApp = finishedApps2[k]
         if finishTimeOfCurApp > finishTimeOfBaseApp:
             reduction += float(finishTimeOfCurApp - finishTimeOfBaseApp) / finishTimeOfBaseApp
+            
+    # the bigger the perf value is, the better performance the scheduler is 
+    # the smaller the fairness value is , more fair the scheduler is,  
+    return {"perf": 1 - float(makespan1) / makespan2, "fairness": float(reduction) / count}
     
-    # the smaller the fairness value is , more fair the scheduler is, 
-    # the bigger the perf value is, the better performance the scheduler is   
-    return {"fairness": float(reduction) / count, "perf": 1 - float(makespan) / baselineMakespan}
-
 
 # cal fairness by using the average reduction of job completion time
 def calculateUnFairness(finishedApps, fairApps):
@@ -207,7 +209,7 @@ if __name__ == '__main__':
     
     for workload in workloadList:
         jobs, entropy = genJobs(workload, {})
-        #execSimulation(clusterSize, queueName, jobList, policy, baselineFinishedApp = None, baselineMakespan = None)
+        #execSimulation(clusterSize, queueName, jobList, policy)
         policy = "DRF"
         finishedAppUnderDRF, makespanUnderDRF = execSimulation(clusterSize, queueName, jobs, policy)
         policyList = ["FIFO", "PERf", "FAIR"]

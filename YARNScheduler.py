@@ -456,13 +456,15 @@ class YARNScheduler(object):
         # compute fair share
         self.update()
         
+        #allocate resources to tasks according to scheduling policy
         for node in self._cluster.getAllNodes():
             self.nodeUpdate(node)
             
         for node in self._cluster.getAllNodes():
             node.calDiskBandwidth()
             node.calNetworkBandwidth()
-
+        
+        #calculate the resource utilization of the whole cluster
         totalMemory = 0
         totalCPU = 0
         totalDisk = 0
@@ -488,6 +490,7 @@ class YARNScheduler(object):
         self._disk.append(float(disk) / totalDisk)
         self._network.append(float(network) / totalNetwork)
         
+        # schedule all jobs and update related status after the scheduling
         self.schedule(step)
         self.updateStatusAfterScheduling(step, currentTime)
         
