@@ -126,3 +126,55 @@ class Utility(object):
     @staticmethod
     def getIndexOfDominantResource(normalizedResVector):
         return normalizedResVector.index(max(normalizedResVector))
+    
+    
+    @staticmethod
+    def isVectorComplementary(vec1, vec2):
+        if vec1.index(max(vec1)) == vec2.index(max(vec2)):
+            return False
+        else:
+            return True
+        
+        
+    @staticmethod
+    def vectorLen(v):
+        s = 0
+        for i in v:
+            s += i * i
+            
+        return math.sqrt(s)
+    
+    
+    @staticmethod
+    def dotProject(v1, v2):
+        s = 0
+        for i in range(len(v1)):
+            s += v1[i] * v2[i]
+            
+        return s
+    
+    
+    @classmethod
+    def calConsin(cls, v1, v2):
+        return float(cls.dotProject(v1, v2)) / (cls.vectorLen(v1) * cls.vectorLen(v2))
+    
+    
+    #the larger, the more complementary(better)
+    @classmethod
+    def calComplementarityOfTwoDVectors(cls, v1, v2):
+        if not cls.isVectorComplementary(v1, v2):
+            return 0
+        else:
+            diffV1 = cls.calConsin(v1, [1, 1])
+            diffV2 = cls.calConsin(v2, [1, 1])
+            return 1 - max(diffV1, diffV2)
+        
+        
+    @classmethod
+    def calSymmetryOfTwoDVectors(cls, vectorList):
+        nums = [0, 0]
+        for vec in vectorList:
+            index = vec.index(max(vec))
+            nums[index] += 1
+            
+        return float(min(nums)) / max(nums)

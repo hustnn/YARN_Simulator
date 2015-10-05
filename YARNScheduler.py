@@ -27,7 +27,7 @@ class YARNScheduler(object):
     '''
 
 
-    def __init__(self, cluster, consideringIO = True, tradeoff = 1.0, similarityType = SimilarityType.PRODUCT, schedulingMode = "default", 
+    def __init__(self, cluster, consideringIO = True, tradeoff = 1.0, similarityType = SimilarityType.COSINE, schedulingMode = "default", 
                  randomFactor = 0, batchSize = 20, vectorQuantinationNum = 20, entropy = 0.0):
         '''
         Constructor

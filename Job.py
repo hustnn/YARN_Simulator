@@ -35,6 +35,10 @@ class Job(object):
         
     def getResourceVector(self):
         return self._taskList[0].getResource().getResourceVector()
+    
+    
+    def getResource(self):
+        return self._taskList[0].getResource()
         
         
     def getJobID(self):
