@@ -29,6 +29,11 @@ class MultipleResourceFitnessPolicy(SchedulingPolicy):
         '''if abs(res) <= 0.01:
             res = 0'''
         
+        if res == 0:
+            res = Utility.sign(s1.getStartTime() - s2.getStartTime())
+            if res == 0:
+                res = Utility.compareTo(s1.getName(), s2.getName())
+        
         return Utility.sign(res)
     
     

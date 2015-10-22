@@ -4,9 +4,9 @@ Created on Jan 16, 2015
 @author: zhaojie
 '''
 
-import numpy
-from numpy import array
-from scipy.cluster.vq import vq, kmeans, whiten, kmeans2
+#import numpy
+#from numpy import array
+#from scipy.cluster.vq import vq, kmeans, whiten, kmeans2
 
 from Resources import Resources
 
@@ -169,7 +169,8 @@ class Utility(object):
             diffV2 = cls.calConsin(v2, [1, 1])
             return 1 - max(diffV1, diffV2)
         
-        
+    
+    # the larger, the more symmetry
     @classmethod
     def calSymmetryOfTwoDVectors(cls, vectorList):
         nums = [0, 0]

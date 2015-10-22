@@ -10,7 +10,7 @@ from FairSharePolicy import FairSharePolicy
 from DominantResourceFairnessPolicy import DominantResourceFairnessPolicy
 from MultipleResourceFairnessPolicy import MultipleResourceFairnessPolicy
 from MaxResourceEntropyPolicy import MaxResourceEntropyPolicy
-
+from FifoPolicy import FifoPolicy
 
 class PolicyParser(object):
     '''
@@ -23,7 +23,9 @@ class PolicyParser(object):
         text = policy.lower()
         policyInstance = cls.instances.get(text)
         if policyInstance == None:
-            if (text == FairSharePolicy.NAME.lower()):
+            if (text == FifoPolicy.NAME.lower()):
+                policyInstance = FifoPolicy()
+            elif (text == FairSharePolicy.NAME.lower()):
                 policyInstance = FairSharePolicy()
             elif (text == DominantResourceFairnessPolicy.NAME.lower()):
                 policyInstance = DominantResourceFairnessPolicy()

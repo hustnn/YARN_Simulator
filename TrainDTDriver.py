@@ -75,14 +75,15 @@ def genJobTypeListWithDifferentEntropy(jobTypeList, windowSize, swapNumList):
     return res
 
 
-def swapJobTypeListInterWindow(jobTypeWindows, swapNumList):
+def swapJobTypeListInterWindow(jobTypeWindows, swapNumList, needSort):
     windowList = []
     for swapNum in swapNumList:
         wAfterSwap = swapWindow(jobTypeWindows, swapNum)
-        sortWindowBasedList(wAfterSwap)
+        if needSort:
+            sortWindowBasedList(wAfterSwap)
         for window in wAfterSwap:
             windowList.append(window)
-            
+    
     return windowList
 
 
@@ -165,8 +166,11 @@ def genYARNJobs(jobTypeList, jobInfoList):
     for jobType in jobTypeList:
         jobInfo = jobInfoList[jobType]
         jobCount += 1
+        taskExecTime = randint(1, 50)
+        '''job = JobGenerator.genComputeIntensitveJob(str(jobCount), jobInfo["NumOfTasks"], jobInfo["Memory"], jobInfo["CPU"], jobInfo["Disk"], jobInfo["Network"], 
+                                                   jobInfo["TaskExecTime"], jobInfo["SubmitTime"])'''
         job = JobGenerator.genComputeIntensitveJob(str(jobCount), jobInfo["NumOfTasks"], jobInfo["Memory"], jobInfo["CPU"], jobInfo["Disk"], jobInfo["Network"], 
-                                                   jobInfo["TaskExecTime"], jobInfo["SubmitTime"])
+                                                   taskExecTime, jobInfo["SubmitTime"])
         jobs.append(job)
     return jobs
 
@@ -300,44 +304,77 @@ if __name__ == '__main__':
     
     print("***")'''
     
+    print("start")
+    output = open(Configuration.WORKLOAD_PATH + "fourSchedulersPerfFair.txt", "w")
+    
     numJobsPerGroup = 24
-    clusterSize = 5
+    clusterSize = 10
     numOfGroup = 10
     yarnJobTypes = [0, 1, 2, 3, 4, 5]
-    swapNumList = [20, 40, 60, 80, 100, 200]
+    swapNumList = [20, 40, 60, 80, 100, 150, 200]
     
-    jobTypeList = genRandomJobTypeList(numJobsPerGroup * numOfGroup, yarnJobTypes)
-    jobTypeList.sort()
-    windowBasedList = genWindowBasedList(jobTypeList, numJobsPerGroup)
-    swappedWindowList = swapJobTypeListInterWindow(windowBasedList, swapNumList)
+    numJobsPerGroupList = [12, 24, 48, 96]
+    yarnJobsInfoList = ["YARNJobInfo1", "YARNJobInfo2"]
     
-    jobsToSchedule = []
-    for window in swappedWindowList:
-        jobs = genYARNJobs(window, jobInfoList)
-        finalComple, comple, symm = calYARNJobTwoDComplementarity(jobs, 20, 20)
-        print(window, finalComple, comple, symm)
-        jobsToSchedule.append({"Jobs": jobs, "FinalComple": finalComple, "Comple": comple, "Symm": symm})
-        
-    print("start scheduling")
-    print "FinalComple Comple Symm FIFOSlowdown FIFOUnfairness FairSlowdown FairUnfairness DRFSlowdown DRFUnfairness PerfSlowdown PerfUnfairness"
-    for jobInfo in jobsToSchedule:
-        jobs = jobInfo["Jobs"]
-        resVector = []
-        for job in jobs:
-            resVector.append(job.getResourceVector())
-        makespanFIFO, finishedAppFIFO = schedule(clusterSize, "queue1", jobInfo["Jobs"], "FIFO", False)
-        makespanFair, finishedAppFair = schedule(clusterSize, "queue1", jobInfo["Jobs"], "fair", False)
-        makespanDRF, finishedAppDRF = schedule(clusterSize, "queue1", jobInfo["Jobs"], "MULTIFAIR", False)
-        makespanPerf, finishedAppPerf = schedule(clusterSize, "queue1", jobInfo["Jobs"], "MRF", False)
-        
-        FIFOSlowdown = calculateSlowdown(makespanFIFO, makespanPerf)
-        FIFOUnfairness = calculateUnFairness(finishedAppFIFO, finishedAppDRF)
-        FairSlowdown = calculateSlowdown(makespanFair, makespanPerf)
-        FairUnfairness = calculateUnFairness(finishedAppFair, finishedAppDRF)
-        DRFSlowdown = calculateSlowdown(makespanDRF, makespanPerf)
-        DRFUnfairness = 0.0
-        PerfSlowdown = 0.0
-        PerfUnfairness = calculateUnFairness(finishedAppPerf, finishedAppDRF)
-        print jobInfo["FinalComple"], jobInfo["Comple"], jobInfo["Symm"], \
-              FIFOSlowdown, FIFOUnfairness, FairSlowdown, FairUnfairness, DRFSlowdown, DRFUnfairness, PerfSlowdown, PerfUnfairness
+    for numJobs in numJobsPerGroupList:
+        for needSort in [True, False]:
+            for yarnJobsFile in yarnJobsInfoList:
+                #print("********* numJobs: " + str(numJobs) + ", needSort" + str(needSort) + ", yarnJobInfo" + yarnJobsFile + "*********")
+                output.write("********* numJobs: " + str(numJobs) + ", needSort" + str(needSort) + ", yarnJobInfo" + yarnJobsFile + "*********\n")
+                
+                jobInfoList = loadJobInfo(Configuration.WORKLOAD_PATH + yarnJobsFile)
+                jobTypeList = genRandomJobTypeList(numJobs * numOfGroup, yarnJobTypes)
+                jobTypeList.sort()
+                windowBasedList = genWindowBasedList(jobTypeList, numJobs)
+                swappedWindowList = swapJobTypeListInterWindow(windowBasedList, swapNumList, needSort)
+                
+                jobsToSchedule = []
+                for window in swappedWindowList:
+                    jobs = genYARNJobs(window, jobInfoList)
+                    finalComple, comple, symm = calYARNJobTwoDComplementarity(jobs, 20, 20)
+                    #print(window, finalComple, comple, symm)
+                    output.write("[")
+                    for win in window:
+                        output.write("%s," % win)   
+                    output.write("],")
+                    output.write("%.3f, %.3f, %.3f\n" % (finalComple, comple, symm))
+                    #output.write(window, finalComple, comple, symm)
+                    #output.write("\n")
+                    jobsToSchedule.append({"Jobs": jobs, "FinalComple": finalComple, "Comple": comple, "Symm": symm})
+                    
+                #print("start scheduling")
+                output.write("start scheduling\n")
+                #print "FinalComple Comple Symm FIFOSlowdown FIFOUnfairness FairSlowdown FairUnfairness DRFSlowdown DRFUnfairness PerfSlowdown PerfUnfairness"
+                output.write("FinalComple Comple Symm FIFOSlowdown FIFOUnfairness FairSlowdown FairUnfairness DRFSlowdown DRFUnfairness PerfSlowdown PerfUnfairness \n")
+                for jobInfo in jobsToSchedule:
+                    jobs = jobInfo["Jobs"]
+                    resVector = []
+                    for job in jobs:
+                        resVector.append(job.getResourceVector())
+                    makespanFIFO, finishedAppFIFO = schedule(clusterSize, "queue1", jobInfo["Jobs"], "FIFO", False)
+                    makespanFair, finishedAppFair = schedule(clusterSize, "queue1", jobInfo["Jobs"], "fair", False)
+                    makespanDRF, finishedAppDRF = schedule(clusterSize, "queue1", jobInfo["Jobs"], "MULTIFAIR", False)
+                    makespanPerf, finishedAppPerf = schedule(clusterSize, "queue1", jobInfo["Jobs"], "MRF", False)
+                    
+                    bestMakespan = min(makespanFIFO, makespanFair, makespanDRF, makespanPerf)
+                    
+                    FIFOSlowdown = calculateSlowdown(makespanFIFO, bestMakespan)
+                    FIFOUnfairness = calculateUnFairness(finishedAppFIFO, finishedAppDRF)
+                    FairSlowdown = calculateSlowdown(makespanFair, bestMakespan)
+                    FairUnfairness = calculateUnFairness(finishedAppFair, finishedAppDRF)
+                    DRFSlowdown = calculateSlowdown(makespanDRF, bestMakespan)
+                    DRFUnfairness = 0.0
+                    PerfSlowdown = calculateSlowdown(makespanPerf, bestMakespan)
+                    PerfUnfairness = calculateUnFairness(finishedAppPerf, finishedAppDRF)
+                    '''print jobInfo["FinalComple"], jobInfo["Comple"], jobInfo["Symm"], \
+                          FIFOSlowdown, FIFOUnfairness, FairSlowdown, FairUnfairness, DRFSlowdown, DRFUnfairness, PerfSlowdown, PerfUnfairness'''
+                    output.write("%.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n" % (jobInfo["FinalComple"], jobInfo["Comple"], jobInfo["Symm"], \
+                                                                                               FIFOSlowdown, FIFOUnfairness, FairSlowdown, FairUnfairness, \
+                                                                                               DRFSlowdown, DRFUnfairness, PerfSlowdown, PerfUnfairness))
+                    output.flush()
+                    
+                output.write("\n\n")
+                       
+    output.close()
+    print("end")
     
