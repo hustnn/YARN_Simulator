@@ -204,7 +204,7 @@ def loadJobInfo(fileName):
     jobInfoList = []
     f = open(fileName, "r")
     lines = f.readlines()
-    for line in lines:
+    for line in lines[1::]:
         items = line.split(",")
         jobInfoList.append({"NumOfTasks": int(items[0]),
                                  "TaskExecTime": int(items[1]),
@@ -305,16 +305,22 @@ if __name__ == '__main__':
     print("***")'''
     
     print("start")
-    output = open(Configuration.WORKLOAD_PATH + "fourSchedulersPerfFair.txt", "w")
+    output = open(Configuration.WORKLOAD_PATH + "fourSchedulersPerfFairDominantWorkload.txt", "w")
     
-    numJobsPerGroup = 24
     clusterSize = 10
+    
     numOfGroup = 10
-    yarnJobTypes = [0, 1, 2, 3, 4, 5]
+    numJobsPerGroupList = [12, 24, 48, 96]
+    
+    # only consider dominant resource now, so there is only 4 types
+    #yarnJobTypes = [0, 1, 2, 3, 4, 5]
+    yarnJobTypes = [0, 1, 2, 3]
+    
     swapNumList = [20, 40, 60, 80, 100, 150, 200]
     
-    numJobsPerGroupList = [12, 24, 48, 96]
-    yarnJobsInfoList = ["YARNJobInfo1", "YARNJobInfo2"]
+    # job info list
+    #yarnJobsInfoList = ["YARNJobInfo1", "YARNJobInfo2"]
+    yarnJobsInfoList = ["DominantYARNJobInfo"]
     
     for numJobs in numJobsPerGroupList:
         for needSort in [True, False]:
@@ -331,21 +337,34 @@ if __name__ == '__main__':
                 jobsToSchedule = []
                 for window in swappedWindowList:
                     jobs = genYARNJobs(window, jobInfoList)
-                    finalComple, comple, symm = calYARNJobTwoDComplementarity(jobs, 20, 20)
-                    #print(window, finalComple, comple, symm)
+                    
+                    # new metrics
+                    '''finalComple, comple, symm = calYARNJobTwoDComplementarity(jobs, 20, 20)
                     output.write("[")
                     for win in window:
                         output.write("%s," % win)   
                     output.write("],")
                     output.write("%.3f, %.3f, %.3f\n" % (finalComple, comple, symm))
-                    #output.write(window, finalComple, comple, symm)
-                    #output.write("\n")
-                    jobsToSchedule.append({"Jobs": jobs, "FinalComple": finalComple, "Comple": comple, "Symm": symm})
+                    jobsToSchedule.append({"Jobs": jobs, "FinalComple": finalComple, "Comple": comple, "Symm": symm})'''
                     
-                #print("start scheduling")
+                    # old metrics
+                    #cal resource entropy for the workload
+                    output.write("[")
+                    for jobType in window:
+                        output.write("%s," % str(jobType))
+                    output.write("], ")
+                    entropy = Utility.calEntropyOfApps(jobs)
+                    output.write("entropy = %.3f\n", entropy)
+                    jobsToSchedule.append({"Jobs": jobs, "Entropy": entropy})
+                    
+                
                 output.write("start scheduling\n")
-                #print "FinalComple Comple Symm FIFOSlowdown FIFOUnfairness FairSlowdown FairUnfairness DRFSlowdown DRFUnfairness PerfSlowdown PerfUnfairness"
-                output.write("FinalComple Comple Symm FIFOSlowdown FIFOUnfairness FairSlowdown FairUnfairness DRFSlowdown DRFUnfairness PerfSlowdown PerfUnfairness \n")
+                # new metrics
+                #output.write("FinalComple Comple Symm FIFOSlowdown FIFOUnfairness FairSlowdown FairUnfairness DRFSlowdown DRFUnfairness PerfSlowdown PerfUnfairness \n")
+                
+                # old metrics
+                output.write("Entropy FIFOSlowdown FIFOUnfairness FairSlowdown FairUnfairness DRFSlowdown DRFUnfairness PerfSlowdown PerfUnfairness \n ")
+                
                 for jobInfo in jobsToSchedule:
                     jobs = jobInfo["Jobs"]
                     resVector = []
@@ -366,11 +385,17 @@ if __name__ == '__main__':
                     DRFUnfairness = 0.0
                     PerfSlowdown = calculateSlowdown(makespanPerf, bestMakespan)
                     PerfUnfairness = calculateUnFairness(finishedAppPerf, finishedAppDRF)
-                    '''print jobInfo["FinalComple"], jobInfo["Comple"], jobInfo["Symm"], \
-                          FIFOSlowdown, FIFOUnfairness, FairSlowdown, FairUnfairness, DRFSlowdown, DRFUnfairness, PerfSlowdown, PerfUnfairness'''
-                    output.write("%.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n" % (jobInfo["FinalComple"], jobInfo["Comple"], jobInfo["Symm"], \
+                    
+                    # new metrics
+                    '''output.write("%.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n" % (jobInfo["FinalComple"], jobInfo["Comple"], jobInfo["Symm"], \
                                                                                                FIFOSlowdown, FIFOUnfairness, FairSlowdown, FairUnfairness, \
-                                                                                               DRFSlowdown, DRFUnfairness, PerfSlowdown, PerfUnfairness))
+                                                                                               DRFSlowdown, DRFUnfairness, PerfSlowdown, PerfUnfairness))'''
+                    
+                    # old metrics
+                    output.write("%.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n" % (jobInfo["Entropy"], \
+                                                                                     FIFOSlowdown, FIFOUnfairness, FairSlowdown, FairUnfairness, \
+                                                                                     DRFSlowdown, DRFUnfairness, PerfSlowdown, PerfUnfairness))
+                    
                     output.flush()
                     
                 output.write("\n\n")

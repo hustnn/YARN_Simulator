@@ -19,7 +19,7 @@ import math
 import time
 from random import randint
 
-#from sklearn import tree
+from sklearn.tree import DecisionTreeClassifier,
 
 class YARNScheduler(object):
     '''
@@ -179,8 +179,19 @@ class YARNScheduler(object):
         
         
     def trainDecisionTreeClassifier(self, dataList, labelList):
-        self._dtclf = tree.DecisionTreeClassifier()
+        self._dtclf = DecisionTreeClassifier()
         self._dtclf = self._dtclf.fit(dataList, labelList)
+        
+        
+    def decideSchedulerAdaptively(self):
+        resVectorList = []
+        for app in self._appsScheduledInCurBatch:
+        demand = app.getCurrentResourceDemand()
+        if not Resources.equals(demand, Resources.none()):
+            resVectorList.append(demand.getResourceVector())
+                        
+        entropy = Utility.calEntropyOfResourceVectorList(resVectorList)
+        pass
         
         
     def nodeUpdate(self, node):

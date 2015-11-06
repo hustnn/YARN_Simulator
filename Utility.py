@@ -93,7 +93,18 @@ class Utility(object):
     
     
     @classmethod
-    def calEntropyOfResourceVectorList(cls, vectorList, vectorQuantinationNum = 4):  
+    def calEntropyOfApps(cls, apps):
+        resVectorList = []
+        for app in apps:
+            demand = app.getCurrentResourceDemand()
+            if not Resources.equals(demand, Resources.none()):
+                resVectorList.append(demand.getResourceVector())
+            
+        return cls.calEntropyOfResourceVectorList(resVectorList)
+    
+    
+    @classmethod
+    def calEntropyOfResourceVectorList(cls, vectorList):  
         code = []
         #mapping normalized resource vector list to category
         for resVector in vectorList:
